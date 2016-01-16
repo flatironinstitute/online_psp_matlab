@@ -1,4 +1,4 @@
-function [allerrors,alltimes,legends]=Online_PCA_simulations(q_each,num_samples_each,d_each,q_mult,n0,niter,nstep_skip_EIGV_errors,test_method,options,errors_paper,errors_paper_half,times_paper,learning_rates)
+function [allerrors,alltimes,legends]=Online_PCA_simulations(q_each,num_samples_each,d_each,n0,niter,nstep_skip_EIGV_errors,test_method,options,errors_paper,errors_paper_half,times_paper,learning_rates)
 %%
 close all
 set(0, 'DefaulttextInterpreter', 'none')
@@ -12,7 +12,6 @@ alltimes={};
 legends={};
 for q=q_each
     options.q=q;
-    qreal=q*q_mult;
     for n=num_samples_each
         counter=0;
         for d=d_each
@@ -25,15 +24,15 @@ for q=q_each
                 [I,J] = ind2sub([d,d],1:d^2);
                 C=zeros(d);
                 C(:)=min(I,J)/d;
-                [Q,L,~]=eigs(C,qreal);
-                Pq=Q(:,1:qreal)*Q(:,1:qreal)';
+                [Q,L,~]=eigs(C,q);
+                Pq=Q(:,1:q)*Q(:,1:q)';
                 % n = 500; % number of sample paths
                 % d = 10;	 % number of observation points
                 errors=zeros(n,niter);
                 times_=zeros(n,niter);
                 for ll=1:niter
                     disp(ll)
-                    x1= normrnd(0,1/sqrt(d),n,d);
+                    x1 = normrnd(0,1/sqrt(d),n,d);
                     x= cumsum(x1,2);
                     
                     %             [U1,S1,V1]=svds(x(1:n0,:),q);
@@ -45,7 +44,7 @@ for q=q_each
                     %             subplot(3,1,3)
                     %             imagesc(Q)
                     
-                    [eigvect,~,eigval]=pca(x(1:n0,:),'NumComponents',q);
+                    [eigvect,~,eigval]=pca(x(1:(n0+1),:),'NumComponents',q);
                     %             [egve,egvl]=svd(x(1:n0,:));
                     %             [V,D,W] = svd(x(1:n0,:)'*x(1:n0,:)/(n0-1));
                     %             %[COEFF,SCORE,latent]=pca(x(1:n0,:));
@@ -62,11 +61,13 @@ for q=q_each
                         M(1:q+1:end)=0; % set diagonals to zero
                         W = vectors';
                         Y = zeros(q,1);
-                        Ysq=sum((W*x(1:n0,:)').^2,2);
-                        
-                        %                 imagesc(M)
-                        %                 uiwait
+                        %Ysq=max(10*ones(size(W,1),1),sum((W*x(1:n0,:)').^2,2));
+                        Ysq=10*ones(size(W,1),1)+sum((W*x(1:n0,:)').^2,2);
                     end
+                    
+                    
+                    Pq_hat=vectors(:,1:q)*vectors(:,1:q)';
+                    errors(n0,ll)=(norm(Pq_hat-Pq,'fro')^2)/(norm(Pq,'fro')^2);
                     
                     
                     for i = (n0+1):n
@@ -92,9 +93,9 @@ for q=q_each
                         if mod(i,nstep_skip_EIGV_errors) ==  0 || i==n || i == round(n/2) 
                             if isequal('H_AH_NN_PCA',test_method)
                                 %disp(['iteration:' num2str(i) ', computing vectors...'])
-                                vectors = (pinv(diag(ones(qreal,1))+M(1:qreal,1:qreal))*W(1:qreal,:))';
+                                vectors = (pinv(diag(ones(q,1))+M(1:q,1:q))*W(1:q,:))';
                             end
-                            Pq_hat=vectors(:,1:qreal)*vectors(:,1:qreal)';
+                            Pq_hat=vectors(:,1:q)*vectors(:,1:q)';
                             errors(i,ll)=(norm(Pq_hat-Pq,'fro')^2)/(norm(Pq,'fro')^2);
                         end
                         %         errors(i,ll)=2*(1-trace(Pq_hat*Pq)/q);

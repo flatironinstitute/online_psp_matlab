@@ -31,7 +31,8 @@ function [M,W,Y]=H_AH_NN_PCAFast(M,W,Y,x,options)
     else
         er = Inf;
         iter_num=0;
-        while er > options.tol && iternum<options.mat_iter
+%         Y=rand(size(W,1),1);
+        while er > options.tol && iter_num <= options.mat_iter
             iter_num=iter_num+1;
             Yprev = Y;
             switch options.update_method
