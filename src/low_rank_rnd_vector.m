@@ -1,13 +1,23 @@
-function low_rank_rnd_vector(d,q,rho,gap)
+function low_rank_rnd_vector(d,q,n,rho,gap,slope,method,options)
 %%
-clear all
-d=512*512;
+options.slope=1;
+options.rho=.1;
+options.gap=.1;
+
+slope=options.slope;
+rho=options.rho;
+gap=options.gap;
+%%
+d=128*128;
 q=50;
 n=1500;
 rho=0.1;
 gap=0.5;
+slope=1;
+%%
 Vb = orth(normrnd(0,1,d,q)); %compute orthonormal basis
-sigm = ones(q,1)*sqrt(gap);
+sigm = sqrt(rho)+sqrt(gap)+slope*[q:-1:1];
+
 %sigm(1:q)=sqrt([1 .9 .8 .7 .6]);
 X=zeros(d,n);
 disp('created X')
@@ -35,7 +45,7 @@ end
 % disp('SVD')
 [COEFF, SCORE, LATENT] = pca(X','NumComponents',q);
 disp('PCA')
-
+plot(LATENT)
 %%
 close all
 subplot(2,2,1)
