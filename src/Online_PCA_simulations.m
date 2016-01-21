@@ -1,7 +1,7 @@
-function [allerrors,alltimes,legends]=Online_PCA_simulations(q_each,num_samples_each,d_each,n0,niter,nstep_skip_EIGV_errors,test_method,options,errors_paper,errors_paper_half,times_paper,learning_rates)
+function [allerrors,alltimes,legends]=Online_PCA_simulations(q_each,num_samples_each,d_each,n0,niter,nstep_skip_EIGV_errors,test_method,options,options_generator,errors_paper,errors_paper_half,times_paper,learning_rates)
 %%
-method_random='brownian_motion';
-options=struct;
+method_random=options_generator.method;
+reconstr_error_PCA=1;
 
 close all
 set(0, 'DefaulttextInterpreter', 'none')
@@ -31,19 +31,22 @@ for q=q_each
                     disp(ll)
                     %generate random samples
                     if isequal(method_random,'brownian_motion') && ll>1 % eigenvalues are only computed once since the covariance matrix is always the same
-                        options.compute_eig=0;
-                        [x,~,~] = low_rank_rnd_vector(d,q,n,method_random,options);
+                        options_generator.compute_eig=0;
+                        [x,~,~] = low_rank_rnd_vector(d,q,n,method_random,options_generator);
                     else
-                        options.compute_eig=1;
-                        [x,eig_vect,eig_val] = low_rank_rnd_vector(d,q,n,method_random,options);                        
+                        options_generator.compute_eig=1;
+                        [x,eig_vect,eig_val] = low_rank_rnd_vector(d,q,n,method_random,options_generator);         
+                        if reconstr_error_PCA
+                            [eig_vect,~,eig_val]=pca(x,'NumComponents',q);
+                            eig_val=eig_val(1:q);
+                        end
                     end
                     
-                    x1 = normrnd(0,1/sqrt(d),n,d);
-                    x= cumsum(x1,2);
+                    
                     
                     [eigvect_init,~,eigval_init]=pca(x(1:(n0+1),:),'NumComponents',q);
 
-                    values=eigval_init;
+                    values=eigval_init(1:q);
                     vectors=eigvect_init;
                     
                     if isequal('H_AH_NN_PCA',test_method)
