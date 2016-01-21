@@ -1,73 +1,98 @@
-function low_rank_rnd_vector(d,q,n,rho,gap,slope,method,options)
-%%
-options.slope=1;
-options.rho=.1;
-options.gap=.1;
+function [X,eig_vect,eig_val] = low_rank_rnd_vector(d,q,n,method,options)
 
-slope=options.slope;
-rho=options.rho;
-gap=options.gap;
-%%
-d=2000;
-q=30;
-n=6000;
-rho=0.1;
-gap=0.4;
-slope=.1;
-%%
-Vb = orth(normrnd(0,1,d,q)); %compute orthonormal basis
-sigm = sqrt(gap + slope*[q-1:-1:0]');
+% generate random samples corresponding to a particular eigenvalue
+% configuration. 
+% 
+% 
+% Parameter
+% ---------
+% d: input dimensionality 
+% q: number of principal components
+% n: number of samples to generate 
+% 
+% method: 'brownian_motion' or 'spiked_covariance'
+% 
+% options: if 'spiked_covariance': 
+%                     options.rho: size of non principal eigenvalues (i.e. noise)
+%                     options.gap: difference between rho and first eigenvalue
+%                     options.slope: slope with which the eignvalue grows departing from rho+gap
+% 
+% 
+% Returns
+% --------
+% X: vector of generated samples ( n x d )
+% eig_vect: eigenvectors used for generating the datasets
+% eig_val: corresponding original eigenvalues such that the stimated
+% eigenvalues should be [eig_val+rho; rho*ones(d-q,1)] for 'spiked_covariance'
+% 
+% Example
+% --------
+%
+% d=50;
+% q=5;
+% n=2000;
+% 
+% method='spiked_covariance';
+% 
+% options.rho=0.1;
+% options.gap=0.4;
+% options.slope=.1;
+% 
+% [X,eig_vect,eig_val] = low_rank_rnd_vector(d,q,n,method,options);
+%
+% [COEFF, SCORE, LATENT] = pca(X,'NumComponents',q);
+% disp('PCA')
+% plot(LATENT)
+% compute_reconstruction_error(eig_vect,COEFF)
+% 
+% close all
+% subplot(2,2,1)
+% hold all
+% plot([eig_val+options.rho; options.rho*ones(d-q,1)])
+% plot(LATENT)
+% subplot(2,2,2)
+% imagesc(eig_vect*eig_vect')
+% subplot(2,2,3)
+% imagesc(COEFF*COEFF')
+% subplot(2,2,4)
+% imagesc(abs(COEFF*COEFF'-eig_vect*eig_vect'),[0 .01])
 
-%sigm(1:q)=sqrt([1 .9 .8 .7 .6]);
-X=zeros(d,n);
-disp('created X')
-x = normrnd(0,1,q,n);
-disp('created x')
-eta = normrnd(0,1,d,n);
-disp('created eta')
-for kk=1:n
-    if mod(kk,100)==0
-        disp(kk)
+%%
+if isequal(method,'spiked_covariance')
+    slope=options.slope;
+    rho=options.rho;
+    gap=options.gap;
+
+    eig_vect = orth(normrnd(0,1,d,q)); %compute orthonormal basis
+    sigm = sqrt(gap + slope*[q-1:-1:0]');
+
+    %sigm(1:q)=sqrt([1 .9 .8 .7 .6]);
+    X=zeros(n,d);
+    %disp('created X')
+    x = normrnd(0,1,q,n);
+    %disp('created x')
+    eta = normrnd(0,1,d,n);
+    disp('creating data samples....')
+    for kk=1:n
+        if mod(kk,100)==0
+            disp(kk)
+        end
+        X(kk,:)=sum(eig_vect*diag(sigm.*x(:,kk)),2)+sqrt(rho)*eta(:,kk);
     end
-    X(:,kk)=sum(Vb*diag(sigm.*x(:,kk)),2)+sqrt(rho)*eta(:,kk);
+    
+    eig_val=sigm.^2;
+    
+    % C=cov(X');
+    % disp('created C')
+    % 
+    % [vectors,lam] = eig(C,'vector');
+    % disp('EIG')
+    
+    % %vectors=vectors(end:-1:end-4,:)';
+    % vectors=vectors(:,end:-1:end-4);
+    % [U,S,V] = svd(C,'econ');
+    % disp('SVD')
+    
+else
+    error('Undefined Method')
 end
-%%
-% C=cov(X');
-% disp('created C')
-% 
-% [vectors,lam] = eig(C,'vector');
-% disp('EIG')
-% 
-
-% %vectors=vectors(end:-1:end-4,:)';
-% vectors=vectors(:,end:-1:end-4);
-% [U,S,V] = svd(C,'econ');
-% disp('SVD')
-[COEFF, SCORE, LATENT] = pca(X','NumComponents',q);
-disp('PCA')
-plot(LATENT)
-F=COEFF(:,1:q);
-Pq_hat=F*F';
-Pq=Vb*Vb';
-errors_1=(norm(Pq_hat-Pq,'fro')^2)/(norm(Pq,'fro')^2)
-A=Vb'*F;
-B=F'*F;
-errrors_2=(q-2*trace(A*A')+trace(B^2))/q
-%%
-close all
-subplot(2,2,1)
-hold all
-plot([sigm.^2+rho; rho*ones(d-q,1)])
-plot(LATENT)
-subplot(2,2,2)
-imagesc(Vb*Vb')
-% subplot(2,3,3)
-% imagesc(vectors*vectors',[-.3 .3])
-subplot(2,2,3)
-imagesc(COEFF*COEFF')
-subplot(2,2,4)
-imagesc(abs(COEFF*COEFF'-Vb*Vb'),[0 .01])
-%%
-
-
-
