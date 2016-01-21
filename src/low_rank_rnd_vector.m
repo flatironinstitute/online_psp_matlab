@@ -8,15 +8,15 @@ slope=options.slope;
 rho=options.rho;
 gap=options.gap;
 %%
-d=128*128;
-q=50;
-n=1500;
+d=2000;
+q=30;
+n=6000;
 rho=0.1;
-gap=0.5;
-slope=1;
+gap=0.4;
+slope=.1;
 %%
 Vb = orth(normrnd(0,1,d,q)); %compute orthonormal basis
-sigm = sqrt(rho)+sqrt(gap)+slope*[q:-1:1];
+sigm = sqrt(gap + slope*[q-1:-1:0]');
 
 %sigm(1:q)=sqrt([1 .9 .8 .7 .6]);
 X=zeros(d,n);
@@ -46,11 +46,18 @@ end
 [COEFF, SCORE, LATENT] = pca(X','NumComponents',q);
 disp('PCA')
 plot(LATENT)
+F=COEFF(:,1:q);
+Pq_hat=F*F';
+Pq=Vb*Vb';
+errors_1=(norm(Pq_hat-Pq,'fro')^2)/(norm(Pq,'fro')^2)
+A=Vb'*F;
+B=F'*F;
+errrors_2=(q-2*trace(A*A')+trace(B^2))/q
 %%
 close all
 subplot(2,2,1)
 hold all
-plot(sigm.^2+rho)
+plot([sigm.^2+rho; rho*ones(d-q,1)])
 plot(LATENT)
 subplot(2,2,2)
 imagesc(Vb*Vb')
@@ -60,3 +67,7 @@ subplot(2,2,3)
 imagesc(COEFF*COEFF')
 subplot(2,2,4)
 imagesc(abs(COEFF*COEFF'-Vb*Vb'),[0 .01])
+%%
+
+
+
