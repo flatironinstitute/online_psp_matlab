@@ -1,5 +1,8 @@
 function [allerrors,alltimes,legends]=Online_PCA_simulations(q_each,num_samples_each,d_each,n0,niter,nstep_skip_EIGV_errors,test_method,options,errors_paper,errors_paper_half,times_paper,learning_rates)
 %%
+method_random='brownian_motion';
+options=struct;
+
 close all
 set(0, 'DefaulttextInterpreter', 'none')
 subplot(2,2,1)
@@ -21,53 +24,40 @@ for q=q_each
                     learning_rate=learning_rates(counter);
                 end
                 hold all;
-                [I,J] = ind2sub([d,d],1:d^2);
-                C=zeros(d);
-                C(:)=min(I,J)/d;
-                [Q,L,~]=eigs(C,q);
-                Pq=Q(:,1:q)*Q(:,1:q)';
-                % n = 500; % number of sample paths
-                % d = 10;	 % number of observation points
+                    
                 errors=zeros(n,niter);
                 times_=zeros(n,niter);
                 for ll=1:niter
                     disp(ll)
+                    %generate random samples
+                    if isequal(method_random,'brownian_motion') && ll>1 % eigenvalues are only computed once since the covariance matrix is always the same
+                        options.compute_eig=0;
+                        [x,~,~] = low_rank_rnd_vector(d,q,n,method_random,options);
+                    else
+                        options.compute_eig=1;
+                        [x,eig_vect,eig_val] = low_rank_rnd_vector(d,q,n,method_random,options);                        
+                    end
+                    
                     x1 = normrnd(0,1/sqrt(d),n,d);
                     x= cumsum(x1,2);
                     
-                    %             [U1,S1,V1]=svds(x(1:n0,:),q);
-                    %             eigval1=diag(S1*S1)/(n0-1);
-                    %             subplot(3,1,1)
-                    %             imagesc(V1)
-                    %             subplot(3,1,2)
-                    %             imagesc(COEFF)
-                    %             subplot(3,1,3)
-                    %             imagesc(Q)
-                    
-                    [eigvect,~,eigval]=pca(x(1:(n0+1),:),'NumComponents',q);
-                    %             [egve,egvl]=svd(x(1:n0,:));
-                    %             [V,D,W] = svd(x(1:n0,:)'*x(1:n0,:)/(n0-1));
-                    %             %[COEFF,SCORE,latent]=pca(x(1:n0,:));
-                    %             eigval=diag(D);
-                    %             values=diag(D);
-                    %             eigvect=V;
-                    
-                    
-                    values=eigval(1:q);
-                    vectors=eigvect(:,1:q);
+                    [eigvect_init,~,eigval_init]=pca(x(1:(n0+1),:),'NumComponents',q);
+
+                    values=eigval_init;
+                    vectors=eigvect_init;
                     
                     if isequal('H_AH_NN_PCA',test_method)
-                        M = 0.0*rand(q,q);
-                        M(1:q+1:end)=0; % set diagonals to zero
+                        M = zeros(q,q);
+%                         M(1:q+1:end)=0; % set diagonals to zero
                         W = vectors';
                         Y = zeros(q,1);
                         %Ysq=max(10*ones(size(W,1),1),sum((W*x(1:n0,:)').^2,2));
-                        Ysq=10*ones(size(W,1),1)+sum((W*x(1:n0,:)').^2,2);
+                        Ysq=0*10*ones(size(W,1),1)+sum((W*x(1:n0,:)').^2,2);
                     end
                     
                     
-                    Pq_hat=vectors(:,1:q)*vectors(:,1:q)';
-                    errors(n0,ll)=(norm(Pq_hat-Pq,'fro')^2)/(norm(Pq,'fro')^2);
+                   
+                    errors(n0,ll)=compute_reconstruction_error(eig_vect,vectors);
                     
                     
                     for i = (n0+1):n
@@ -94,11 +84,9 @@ for q=q_each
                             if isequal('H_AH_NN_PCA',test_method)
                                 %disp(['iteration:' num2str(i) ', computing vectors...'])
                                 vectors = (pinv(diag(ones(q,1))+M(1:q,1:q))*W(1:q,:))';
-                            end
-                            Pq_hat=vectors(:,1:q)*vectors(:,1:q)';
-                            errors(i,ll)=(norm(Pq_hat-Pq,'fro')^2)/(norm(Pq,'fro')^2);
+                            end                         
+                            errors(i,ll)=compute_reconstruction_error(eig_vect,vectors);
                         end
-                        %         errors(i,ll)=2*(1-trace(Pq_hat*Pq)/q);
                     end
                     %             plot(errors(:,ll))
                     %             drawnow

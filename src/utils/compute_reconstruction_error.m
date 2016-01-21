@@ -7,7 +7,7 @@ the number of principal components
 
 Parameter
 ---------
-V_exact,V_approx
+V_exact,V_approx: eigenvector matrix (features x components)
 
 Return
 ------
