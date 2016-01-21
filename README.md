@@ -3,7 +3,7 @@ Benchmark of online PCA algorithms
 
 Set of functions efficiently implemented in MATLAB
 
-## Installlation
+## Installation
 
 clone the repository or unzip the source and add the root folder to the MATLAB path
 
