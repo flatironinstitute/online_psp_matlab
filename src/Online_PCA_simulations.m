@@ -19,7 +19,7 @@ for q=q_each
         counter=0;
         for d=d_each
             counter=counter+1;            
-            if d>=q     
+            if d>q     
                 if isequal(test_method,'SGA') || isequal(test_method,'GHA')
                     learning_rate=learning_rates(counter);
                 end
@@ -43,7 +43,7 @@ for q=q_each
                     end
                     
                     
-                    
+                    n0=max(n0,q);
                     [eigvect_init,~,eigval_init]=pca(x(1:(n0+1),:),'NumComponents',q);
 
                     values=eigval_init(1:q);

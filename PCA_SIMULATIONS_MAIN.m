@@ -1,12 +1,11 @@
 clear all
 profile off
 profile on
-niter=30; % was 40
-n0 = 250; % number of sample paths used for initialization
-q_each=[2 4 16 64 512];
-num_samples_each=[4096];
-d_each=[2 4 16 64 512 1024];
-
+niter=100; % was 40
+n0 = 0; % number of sample paths used for initialization
+q_each=[2 4 16 64 256 512];
+num_samples_each=1024%8192;
+d_each=[4 16 64 256 1024 4096];
 if n0==50
     learning_rates=[10,1,.1]/5; 
 else 
@@ -22,8 +21,8 @@ close all
 options_generator=struct;
 options_generator.method='spiked_covariance';
 options_generator.rho=0.1;
-options_generator.gap=4;
-options_generator.slope=.1;
+options_generator.gap=.5;
+options_generator.slope=.05;
 options_generator.compute_eig=1;
 
 %%

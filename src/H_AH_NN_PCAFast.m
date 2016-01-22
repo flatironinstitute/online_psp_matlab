@@ -64,8 +64,8 @@ function [M,W,Y]=H_AH_NN_PCAFast(M,W,Y,x,options)
         W(isnan(W)) = 0;
     end
 
-    M = M + bsxfun(@times,Y_tmp,Y') - M.*repmat(Y_tmp_sq,[1 q]);
-   % M = M + Y_tmp*Y' - bsxfun(@times,M,Y_tmp_sq);
+    M = M + bsxfun(@times,Y_tmp,Y') - bsxfun(@times,M,Y_tmp_sq);
+   % M = M + Y_tmp*Y' - M.*repmat(Y_tmp_sq,[1 q]);
     M(isnan(M)) = 0;
     %stupid comment
     M(1:q+1:end)=0;

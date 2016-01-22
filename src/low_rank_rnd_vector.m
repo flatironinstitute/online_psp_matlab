@@ -76,7 +76,8 @@ if isequal(method,'spiked_covariance')
         if mod(kk,100)==0
             %disp(kk)
         end
-        X(kk,:)=sum(eig_vect*diag(sigm.*x(:,kk)),2)+sqrt(rho)*eta(:,kk);
+%         X(kk,:) = sum(eig_vect*diag(sigm.*x(:,kk)),2)+sqrt(rho)*eta(:,kk);
+        X(kk,:)=sum(bsxfun(@times,eig_vect,(sigm.*x(:,kk))'),2)+sqrt(rho)*eta(:,kk);
     end
     
     eig_val=sigm.^2;
