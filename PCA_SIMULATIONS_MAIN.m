@@ -2,10 +2,10 @@ clear all
 profile off
 profile on
 niter=30; % was 40
-n0 = 50; % number of sample paths used for initialization
-q_each=[5];
-num_samples_each=[1000];
-d_each=[10,100,1000];
+n0 = 250; % number of sample paths used for initialization
+q_each=[2 4 16 64 512];
+num_samples_each=[4096];
+d_each=[2 4 16 64 512 1024];
 
 if n0==50
     learning_rates=[10,1,.1]/5; 
@@ -16,8 +16,8 @@ end
 nstep_skip_EIGV_errors=50;
 close all
 %%
-options_generator=struct;
-options_generator.method='brownian_motion';
+% options_generator=struct;
+% options_generator.method='brownian_motion';
 %%
 options_generator=struct;
 options_generator.method='spiked_covariance';

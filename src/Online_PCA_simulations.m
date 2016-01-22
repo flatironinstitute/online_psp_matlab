@@ -25,8 +25,8 @@ for q=q_each
                 end
                 hold all;
                     
-                errors=zeros(n,niter);
-                times_=zeros(n,niter);
+                errors=nan*zeros(n,niter);
+                times_=nan*zeros(n,niter);
                 for ll=1:niter
                     disp(ll)
                     %generate random samples
@@ -54,12 +54,12 @@ for q=q_each
 %                         M(1:q+1:end)=0; % set diagonals to zero
                         W = vectors';
                         Y = zeros(q,1);
-                        %Ysq=max(10*ones(size(W,1),1),sum((W*x(1:n0,:)').^2,2));
+%                         Ysq=max(10*ones(size(W,1),1),sum((W*x(1:n0,:)').^2,2));
                         Ysq=0*10*ones(size(W,1),1)+sum((W*x(1:n0,:)').^2,2);
                     end
                     
                     
-                   
+                    
                     errors(n0,ll)=compute_reconstruction_error(eig_vect,vectors);
                     
                     
@@ -97,7 +97,7 @@ for q=q_each
                 
                 allerrors=[allerrors; errors(end,:)];
                 allerrors_half=[allerrors_half; errors(round(n/2),:)]; %remember that most are zeros!!
-                alltimes=[alltimes {times_(times_~=0)}];
+                alltimes=[alltimes {times_(~isnan(times_))}];
                 plot(median(errors,2),'d','Linewidth',2)
                 drawnow
                 save(fullfile(folder_exp,['n' num2str(n) '_d' num2str(d) '_q' num2str(q)]))
