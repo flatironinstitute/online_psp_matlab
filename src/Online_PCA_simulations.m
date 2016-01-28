@@ -1,4 +1,4 @@
-function [allerrors,alltimes,legends]=Online_PCA_simulations(q_each,num_samples_each,d_each,n0,niter,nstep_skip_EIGV_errors,test_method,options,options_generator,errors_paper,errors_paper_half,times_paper,learning_rates)
+function [allerrors,alltimes,legends]=Online_PCA_simulations(q_each,num_samples_each,d_each,n0,niter,nstep_skip_EIGV_errors,test_method,options,options_generator,errors_paper,errors_paper_half,times_paper)
 %%
 method_random=options_generator.method;
 reconstr_error_PCA=1;
@@ -20,9 +20,7 @@ for q=q_each
         for d=d_each
             counter=counter+1;            
             if d>q     
-                if isequal(test_method,'SGA') || isequal(test_method,'GHA')
-                    learning_rate=learning_rates(counter);
-                end
+               
                 hold all;
                     
                 errors=nan*zeros(n,niter);
@@ -56,8 +54,9 @@ for q=q_each
                         Y = zeros(q,1);
 %                         Ysq=max(10*ones(size(W,1),1),sum((W*x(1:n0,:)').^2,2));
                         Ysq=0*10*ones(size(W,1),1)+sum((W*x(1:n0,:)').^2,2);
+                    elseif isequal('GHA',test_method) || isequal('SGA',test_method) 
+                       learning_rate=.1;
                     end
-                    
                     
                     
                     errors(n0,ll)=compute_reconstruction_error(eig_vect,vectors);
