@@ -10,18 +10,23 @@ function [X,eig_vect,eig_val] = low_rank_rnd_vector(d,q,n,method,options)
 % q: number of principal components
 % n: number of samples to generate 
 % 
-% method: 'brownian_motion' or 'spiked_covariance'
-% 
+% method: 'brownian_motion': covariance matrix in the form c_ij=max(i,j)
+%         'spiked_covariance_normalized':  principal eigenvalues have the profile rho linspace(1,lambda_q,q)
+%         'spiked_covariance': principal eigenvalues have the profile rho+ gap + slope*[q-1:-1:0]'
+%
 % options: if 'spiked_covariance': 
 %                     options.rho: size of non principal eigenvalues (i.e. noise)
 %                     options.gap: difference between rho and first eigenvalue
 %                     options.slope: slope with which the eignvalue grows departing from rho+gap
+%          if 'spiked_covariance_normalized': 
+%                     options.rho: size of non principal eigenvalues (i.e. noise) 
+%                     options.lambda_q: size of smallest principal eigenvalues   
 % 
 % 
 % Returns
 % --------
 % X: vector of generated samples ( n x d )
-% eig_vect: eigenvectors used for generating the datasets
+% eig_vect: eigenvectors used for generating the datasets (d x q)
 % eig_val: corresponding original eigenvalues such that the stimated
 % eigenvalues should be [eig_val+rho; rho*ones(d-q,1)] for 'spiked_covariance'
 % 
@@ -58,13 +63,21 @@ function [X,eig_vect,eig_val] = low_rank_rnd_vector(d,q,n,method,options)
 % imagesc(abs(COEFF*COEFF'-eig_vect*eig_vect'),[0 .01])
 
 %%
-if isequal(method,'spiked_covariance')
-    slope=options.slope;
-    rho=options.rho;
-    gap=options.gap;
-
+if isequal(method,'spiked_covariance') || isequal(method,'spiked_covariance_normalized')
+    if isequal(method,'spiked_covariance')
+        slope=options.slope;
+        rho=options.rho;
+        gap=options.gap;
+        
+        sigm = sqrt(gap + slope*[q-1:-1:0]');
+    else
+        rho=options.rho;
+        lambda_q=options.lambda_q;        
+        sigm = sqrt(linspace(1,lambda_q,q))';
+    end
+    
     eig_vect = orth(normrnd(0,1,d,q)); %compute orthonormal basis
-    sigm = sqrt(gap + slope*[q-1:-1:0]');
+
 
     %sigm(1:q)=sqrt([1 .9 .8 .7 .6]);
     X=zeros(n,d);
@@ -72,12 +85,13 @@ if isequal(method,'spiked_covariance')
     x = normrnd(0,1,q,n);
     %disp('created x')
     eta = normrnd(0,1,d,n);
-    disp('creating data samples....')
+    %disp('creating data samples....')
     for kk=1:n
         if mod(kk,100)==0
-            disp(kk)
+            %disp(kk)
         end
-        X(kk,:)=sum(eig_vect*diag(sigm.*x(:,kk)),2)+sqrt(rho)*eta(:,kk);
+%         X(kk,:) = sum(eig_vect*diag(sigm.*x(:,kk)),2)+sqrt(rho)*eta(:,kk);
+        X(kk,:)=sum(bsxfun(@times,eig_vect,(sigm.*x(:,kk))'),2)+sqrt(rho)*eta(:,kk);
     end
     
     eig_val=sigm.^2;
@@ -93,6 +107,37 @@ if isequal(method,'spiked_covariance')
     % [U,S,V] = svd(C,'econ');
     % disp('SVD')
     
+elseif isequal(method,'brownian_motion')
+    
+    x1 = normrnd(0,1/sqrt(d),n,d);
+    
+    X = cumsum(x1,2);    
+    
+    if options.compute_eig
+        
+        if d^2<10e+8
+            
+            [I,J] = ind2sub([d,d],1:d^2);
+            C=zeros(d);
+            C(:)=min(I,J)/d;            
+            [eig_vect,S]=eigs(C,q);
+            eig_val=diag(S);
+        
+        else
+            
+            warning('eigenvalues not computed since covariace matrix contains more than 10e+7 elements')
+            eig_vect=[];
+            eig_val=[];
+    
+        end
+        
+    else
+        eig_vect=[];
+        eig_val=[];    
+    end
+    
 else
+    
     error('Undefined Method')
+
 end
