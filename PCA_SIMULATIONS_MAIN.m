@@ -1,7 +1,7 @@
 clear all
 profile off
 profile on
-niter=10; % was 40
+niter=0; % was 40
 n0 = 0; % number of sample paths used for initialization
 q_each=[2 4 16 64 256];% 512];
 num_samples_each=2048;%8192;
@@ -42,10 +42,10 @@ close all
 options=struct();
 test_method='IPCA';
 options.tol=1e-7;
-errors_paper=[.011 .007 .007];
-errors_paper_half=[0.02 .015 .015];
+errors_paper=[];
+errors_paper_half=[];
 
-times_paper=[.17  .11  .17 ];
+times_paper=[];
 [allerrors,alltimes,legends]=Online_PCA_simulations(q_each,num_samples_each,d_each,n0,niter,nstep_skip_EIGV_errors,test_method,options,options_generator,errors_paper,errors_paper_half,times_paper);
 close all
 %% !!!! LEARNING RATE MANAULLY SET IN THE FILE!!!

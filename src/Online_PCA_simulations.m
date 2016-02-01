@@ -86,7 +86,7 @@ for q=q_each
                         if mod(idx,nstep_skip_EIGV_errors) ==  0 || idx==n*outer_iter || i == round(n*outer_iter/2) 
                             if isequal('H_AH_NN_PCA',test_method)
                                 %disp(['iteration:' num2str(i) ', computing vectors...'])
-                                vectors = (pinv(diag(ones(q,1))+M(1:q,1:q))*W(1:q,:))';
+                                vectors = orth((pinv(diag(ones(q,1))+M(1:q,1:q))*W(1:q,:))');
                             end                         
                             errors(idx,ll)=compute_reconstruction_error(eig_vect,vectors);
                         end
