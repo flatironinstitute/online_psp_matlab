@@ -1,7 +1,7 @@
 clear all
 profile off
 profile on
-niter=10; % was 40
+niter=40; % was 40
 n0 = 32; % number of sample paths used for initialization
 q_each=16;
 num_samples_each=4096;

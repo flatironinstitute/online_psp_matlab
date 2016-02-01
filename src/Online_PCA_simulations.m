@@ -2,7 +2,7 @@ function [allerrors,alltimes,legends]=Online_PCA_simulations(q_each,num_samples_
 %%
 method_random=options_generator.method;
 reconstr_error_PCA=1;
-
+outer_iter=1;
 close all
 set(0, 'DefaulttextInterpreter', 'none')
 subplot(2,2,1)
@@ -23,8 +23,8 @@ for q=q_each
                
                 hold all;
                     
-                errors=nan*zeros(n,niter);
-                times_=nan*zeros(n,niter);
+                errors=nan*zeros(n*outer_iter,niter);
+                times_=nan*zeros(n*outer_iter,niter);
                 for ll=1:niter
                     disp(ll)
                     %generate random samples
@@ -61,19 +61,20 @@ for q=q_each
                     
                     errors(n0,ll)=compute_reconstruction_error(eig_vect,vectors);
                     
-                    
+                    for outit=1:outer_iter
                     for i = (n0+1):n
+                        idx=(outit-1)*n + i;
                         tic
                         %disp(i)
                         switch test_method
                             case 'SGA'
-                                options.gamma=learning_rate/i;
+                                options.gamma=learning_rate/idx;
                                 [values, vectors] = sgaPCAFast(values, vectors, x(i,:),options);
                             case 'GHA'
-                                options.gamma=learning_rate/i;
+                                options.gamma=learning_rate/idx;
                                 [values, vectors] = sgaPCAFast(values, vectors, x(i,:),options);
                             case 'IPCA'
-                                options.n=i-1;
+                                options.n=idx-1;
                                 [values, vectors] = incrPCA_fast(values, vectors,  x(i,:), options);
                             case 'H_AH_NN_PCA'
                                 options.gamma=1./Ysq;
@@ -81,17 +82,18 @@ for q=q_each
                                 Ysq = Ysq + Y.^2;
                                 
                         end
-                        times_(i,ll)=toc;
-                        if mod(i,nstep_skip_EIGV_errors) ==  0 || i==n || i == round(n/2) 
+                        times_(idx,ll)=toc;
+                        if mod(idx,nstep_skip_EIGV_errors) ==  0 || idx==n*outer_iter || i == round(n*outer_iter/2) 
                             if isequal('H_AH_NN_PCA',test_method)
                                 %disp(['iteration:' num2str(i) ', computing vectors...'])
                                 vectors = (pinv(diag(ones(q,1))+M(1:q,1:q))*W(1:q,:))';
                             end                         
-                            errors(i,ll)=compute_reconstruction_error(eig_vect,vectors);
+                            errors(idx,ll)=compute_reconstruction_error(eig_vect,vectors);
                         end
                     end
                     %             plot(errors(:,ll))
                     %             drawnow
+                    end
                 end
                 
                 allerrors=[allerrors; errors(end,:)];
