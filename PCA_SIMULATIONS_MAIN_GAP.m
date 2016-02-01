@@ -1,7 +1,7 @@
 clear all
 profile off
 profile on
-niter=40; % was 40
+niter=10; % was 40
 n0 = 32; % number of sample paths used for initialization
 q_each=16;
 num_samples_each=4096;
@@ -27,13 +27,13 @@ options_generator.lambda_q=.95;
 errors_paper=[];
 errors_paper_half=[];
 times_paper=[];
-for rho=0:.1:1
+for rho=.8%0:.1:1
     disp(rho)
     options_generator.rho=rho;    
     options=struct();
     test_method='IPCA';
     options.tol=1e-7;        
-    [allerrors,alltimes,legends]=Online_PCA_simulations(q_each,num_samples_each,d_each,n0,niter,nstep_skip_EIGV_errors,test_method,options,options_generator,errors_paper,errors_paper_half,times_paper);
+    [~,alltimes,legends]=Online_PCA_simulations(q_each,num_samples_each,d_each,n0,niter,nstep_skip_EIGV_errors,test_method,options,options_generator,errors_paper,errors_paper_half,times_paper);
     options=struct();
     test_method='H_AH_NN_PCA';
     options.update_method='ls';
