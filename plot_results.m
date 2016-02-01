@@ -1,5 +1,7 @@
 %% display results simulation
 files=dir('*.mat')
+
+
 figure
 hold all
 legends={};
@@ -25,17 +27,20 @@ xlabel('Samples')
 ylabel('Eigenspace Estimation Error pca vs batch')
 %%
 files=dir('*.mat')
-dirFlags = [files.isdir];
-files=files(dirFlags);
+% dirFlags = [files.isdir];
+% files=files(dirFlags);
 files = struct2cell(files);
 files = files(1,:);
-
+%%
 files=uipickfiles;
 %%
 figure
 hold all
 legends={};
-cm=colormap('lines')
+cm1=colormap('hot');
+cm2=flipud(colormap('gray'))
+cm3=flipud(colormap('autumn'))
+
 % cm=colormap(hot(20))
 colq=[];
 for f=1:numel(files)
@@ -48,15 +53,15 @@ for f=1:numel(files)
 
    if isequal(test_method,'IPCA')
         symbol='d';
-        colr=cm1(20+ff,:);
+        colr=cm1(20+f,:);
         shift=0;
     elseif isequal(test_method,'SGA')
         symbol='o';
-        colr=cm2(ff*2,:);
+        colr=cm2(f*2,:);
         shift=0;
     else
         symbol='s';
-        colr=cm3(ff*2,:);
+        colr=cm3(f*2,:);
         shift=0;
     end
    colq(f)=errorbar(q+normrnd(0,q/50,size(q)),nanmedian(errors(end,:)),quantile(errors(end,:),.25),quantile(errors(end,:),.75),'ko','MarkerFaceColor',colr,'MarkerSize',10) ;
@@ -88,15 +93,15 @@ for f=1:numel(files)
 
    if isequal(test_method,'IPCA')
         symbol='d';
-        colr=cm1(20+ff,:);
+        colr=cm1(20+f,:);
         shift=0;
     elseif isequal(test_method,'SGA')
         symbol='o';
-        colr=cm2(ff*2,:);
+        colr=cm2(f*2,:);
         shift=0;
     else
         symbol='s';
-        colr=cm3(ff*2,:);
+        colr=cm3(f*2,:);
         shift=0;
     end
    colq(f)=errorbar(q+normrnd(0,q/50,size(q)),nanmedian(times_(:)*1000),quantile(times_(:)*1000,.25),quantile(times_(:)*1000,.75),'ko','MarkerFaceColor',colr,'MarkerSize',10) ;
