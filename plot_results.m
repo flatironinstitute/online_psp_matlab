@@ -1,11 +1,10 @@
 %% display results simulation
+clear all
 files=dir('*.mat')
-
-
 figure
 hold all
 legends={};
-cm=colormap(hot(50))
+cm=colormap(hot(numel(files)));
 d_s=[];
 q_s=[];
 err_s=[];
@@ -26,6 +25,7 @@ legend(legends, 'Interpreter', 'none')
 xlabel('Samples')
 ylabel('Eigenspace Estimation Error pca vs batch')
 %%
+clear all
 files=dir('*.mat')
 % dirFlags = [files.isdir];
 % files=files(dirFlags);
@@ -35,16 +35,22 @@ files = files(1,:);
 files=uipickfiles;
 %%
 figure
+clear all
+files=dir('*.mat')
+% dirFlags = [files.isdir];
+% files=files(dirFlags);
+files = struct2cell(files);
+files = files(1,:);
 hold all
 legends={};
-cm1=hot(100);
-cm2=flipud(gray(100))
-cm3=flipud(autumn(100))
+cm1=hot(20+numel(files));
+cm2=flipud(gray(numel(files)))
+cm3=flipud(autumn(numel(files)))
 
 % cm=colormap(hot(20))
 colq=[];
-for f=1:numel(files)
-   disp(files{f})
+for f=1:numel(files)    
+   disp(f)
    load(files{f},'options_algorithm','options_generator','options_simulations','d','q','errors_online')
    errors=errors_online;
    legends{f}=files{f};
@@ -55,18 +61,21 @@ for f=1:numel(files)
    if isequal(test_method,'IPCA')
         symbol='d';
         colr=cm1(20+f,:);
+        colr=cm1(20,:);
         shift=0;
     elseif isequal(test_method,'H_AH_NN_PCA')
         symbol='o';
-        colr=cm2(f*2,:);
+        colr=cm2(f,:);
+        colr=cm2(20,:);
         shift=0;
     else
         symbol='s';
-        colr=cm3(f*2,:);
+        colr=cm3(f,:);
         shift=0;
    end
    vr= options_generator.rho;
-   colq(f)=errorbar(vr+normrnd(0,vr/50,size(vr)),nanmedian(errors(end,:)),quantile(errors(end,:),.25),quantile(errors(end,:),.75),'ko','MarkerFaceColor',colr,'MarkerSize',10) ;
+%    colq(f)=errorbar(vr+normrnd(0,vr/50,size(vr)),nanmedian(errors(end,:)),quantile(errors(end,:),.25),quantile(errors(end,:),.75),'ko','MarkerFaceColor',colr,'MarkerSize',10) ;
+   colq(f)=scatter(vr+normrnd(0,vr/50,size(vr)),nanmedian(errors(end,:)),'ko','MarkerFaceColor',colr) ;
    set(gca,'yscale','log')
    set(gca,'xscale','log')
 %    legend(legends{:})   
@@ -79,15 +88,23 @@ ylabel('Projection Error')
 saveas(gcf,'ProjErrors.jpg')
 saveas(gcf,'ProjErrors.fig')
 %%
+clear all
+files=dir('*.mat')
+% dirFlags = [files.isdir];
+% files=files(dirFlags);
+files = struct2cell(files);
+files = files(1,:);
+cm1=hot(20+numel(files));
+cm2=flipud(gray(numel(files)))
+cm3=flipud(autumn(numel(files)))
 figure
 hold all
 legends={};
-cm=colormap('lines')
 % cm=colormap(hot(20))
 colq=[];
 for f=1:numel(files)
-   disp(files{f})
-   load(files{f},'options_algorithm','options_generator','options_simulations','test_method','d','q','times_')
+   disp(f)
+   load(files{f},'options_algorithm','options_generator','options_simulations','d','q','times_')
    legends{f}=files{f};
    times_=diff(times_);
    test_method=options_algorithm.pca_algorithm;
@@ -100,14 +117,14 @@ for f=1:numel(files)
         shift=0;
     elseif isequal(test_method,'H_AH_NN_PCA')
         symbol='o';
-        colr=cm2(f*2,:);
+        colr=cm2(f,:);
         shift=0;
     else
         symbol='s';
-        colr=cm3(f*2,:);
+        colr=cm3(f,:);
         shift=0;
    end
-   vr=options_generator.rho;
+   vr=q;
    colq(f)=errorbar(vr+normrnd(0,vr/50,size(vr)),nanmedian(times_(:)*1000),quantile(times_(:)*1000,.25),quantile(times_(:)*1000,.75),'ko','MarkerFaceColor',colr,'MarkerSize',10) ;
    set(gca,'yscale','log')
    set(gca,'xscale','log')
@@ -139,27 +156,28 @@ files_to_analize = files_to_analize(1,:);
 figure
 hold all
 legends={};
-cm1=hot(100);
-cm2=flipud(gray(100));
-cm3=flipud(autumn(100));
+cm1=hot(20+numel(files));
+cm2=flipud(gray(numel(files)))
+cm3=flipud(autumn(numel(files)))
 
 colq=[];
 for ff=1:numel(files_to_analize)
     disp(files_to_analize{ff})   
-    load(files{f},'options_algorithm','options_generator','options_simulations','test_method','d','q','errors_online')
+    load(files{ff},'options_algorithm','options_generator','options_simulations','d','q','errors_online')
+    test_method=options_algorithm.pca_algorithm;
     errors=errors_online;
-    legends{f}=[test_method ' rho = ' num2str(options_generator.rho) ' d = ' num2str(d) ' n0 = ' num2str(options_simulations.n0)];
+    legends{ff}=[test_method ' rho = ' num2str(options_generator.rho) ' d = ' num2str(d) ' n0 = ' num2str(options_simulations.n0)];
     if isequal(test_method,'IPCA')
         symbol='d';
         colr=cm1(20+ff,:);
         shift=0;
     elseif isequal(test_method,'H_AH_NN_PCA')
         symbol='o';
-        colr=cm2(ff*2,:);
+        colr=cm2(ff,:);
         shift=0;
     else
         symbol='s';
-        colr=cm3(ff*2,:);
+        colr=cm3(ff,:);
         shift=0;
     end
     errline=nanmedian(errors');    
@@ -178,25 +196,34 @@ saveas(gcf,'Error.jpg')
 saveas(gcf,'Error.fig')
 
 %%
+clear all
+clear all
+files=dir('*.mat')
+% dirFlags = [files.isdir];
+% files=files(dirFlags);
+files = struct2cell(files);
+files = files(1,:);
+cm1=hot(20+numel(files));
+cm2=flipud(gray(numel(files)));
+cm3=flipud(autumn(numel(files)));
 figure
 hold all
 legends={};
 colq=[];
-for f=1:numel(files_to_analize)
-   disp(files_to_analize{f})
-   if isdir(files_to_analize{ff})
-     load(fullfile(files_to_analize{f},'n4096_d256_q16.mat'),'options_generator','times_','test_method','q','d')
-   else
-     load(files_to_analize{f},'options_generator','times_','test_method','q','d')  
-   end
-   legends{f}=['method=' num2str(test_method)];
+for f=1:numel(files)
+   disp(f)  
+   load(files{f},'options_algorithm','options_generator','options_simulations','d','q','times_','errors_online')
+   legends{f}=files{f};
+   times_=diff(times_);
+   test_method=options_algorithm.pca_algorithm;
+   errors=errors_online;
    if isequal(test_method,'IPCA')
         symbol='d';
-        colr=cm1(1,:);
+        colr=cm1(100,:);
         shift=1;
-   elseif  isequal(test_method,'SGA')
+   elseif  isequal(test_method,'H_AH_NN_PCA')
         symbol='o';
-        colr=cm1(30,:);
+        colr=cm2(100,:);
         shift=1;
    else
         symbol='s';
@@ -209,6 +236,8 @@ for f=1:numel(files_to_analize)
    xvarname='q';
    xvar=q;
    %colq(f)=errorbar(xvar,nanmedian(times_(:)*1000),mad(times_(:)*1000,.25),'ko','MarkerFaceColor',colr,'MarkerSize',10) ;
+   times_iter=times_*1000;
+   
    colq(f)=errorbar(xvar+ normrnd(0,xvar/20),nanmedian(times_(:)*1000),quantile(times_(:)*1000,.25),quantile(times_(:)*1000,.75),'ko','MarkerFaceColor',colr,'MarkerSize',10) ;
 
 %    legend(legends{:})   

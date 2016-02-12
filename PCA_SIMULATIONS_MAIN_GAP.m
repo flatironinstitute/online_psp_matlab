@@ -31,13 +31,13 @@ folder_exp=['n0_' num2str(options_simulations.n0) '_niter' num2str(options_simul
 mkdir(folder_exp)
 hold all
 legends={};
-options_generator.n=8192;
+options_generator.n=2048;
 cm=hot(220);
 counter=0;
 
 for q=[2 4 16 64 256 512]
-    for d=[4 16 64 256 1024 4096]
-        for rho=0.1:.2:.9
+    for d=[4 16 64 256 1024]
+        for rho=.1:.2:.9
             options_generator.q=q;
             options_generator.d=d;
             
