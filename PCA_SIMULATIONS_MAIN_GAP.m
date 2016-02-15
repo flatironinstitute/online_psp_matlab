@@ -26,6 +26,8 @@ options_generator.lambda_q=.95;
 
 %%
 format compact
+options_simulations.compute_error=1;
+
 t = datetime('now');
 folder_exp=['n0_' num2str(options_simulations.n0) '_niter' num2str(options_simulations.niter) '_' char(t)];
 mkdir(folder_exp)
@@ -81,6 +83,67 @@ for q=[2 4 16 64 256 512]
         end
     end
 end
+%%
+format compact
+options_simulations.compute_error=0;
+options_simulations.niter=10;
+
+t = datetime('now');
+folder_exp=['n0_' num2str(options_simulations.n0) '_niter' num2str(options_simulations.niter) '_' char(t)];
+mkdir(folder_exp)
+hold all
+legends={};
+options_generator.n=10000;
+cm=hot(220);
+counter=0;
+
+for q=[128 256 512]
+    for d=[65536]
+        for rho=[.5]
+            options_generator.q=q;
+            options_generator.d=d;
+            
+            disp(rho)
+            options_generator.rho=rho;
+            options_algorithm=struct();
+            options_algorithm.pca_algorithm='IPCA';
+            options_algorithm.q=options_generator.q;
+            options_algorithm.tol=1e-7;
+            [errors_real,errors_batch_pca,errors_online,times_,fname]=Online_PCA_simulations(folder_exp,options_simulations,options_generator,options_algorithm);
+            if ~isempty(errors_real)
+                axs=[];
+                counter=counter+1;
+                cols=cm(counter,:);
+                axs(1)=plot(median(errors_real,2),'d','Linewidth',2,'color',cols);
+                axs(2)=plot(median(errors_batch_pca,2),'+','Linewidth',2,'color',cols);
+                axs(3)=plot(median(errors_online,2),'*','Linewidth',2,'color',cols);
+                legend(axs,{'real','batch pca','online'}, 'Interpreter', 'none')
+                xlabel(fname)
+                ylabel('Projection error')
+                drawnow
+            end
+            options_algorithm=struct();
+            options_algorithm.pca_algorithm='H_AH_NN_PCA';
+            options_algorithm.q=options_generator.q;
+            options_algorithm.update_method='ls';
+            options_algorithm.tol=1e-5;
+            [errors_real,errors_batch_pca,errors_online,times_,fname]=Online_PCA_simulations(folder_exp,options_simulations,options_generator,options_algorithm);
+            if ~isempty(errors_real)
+                axs=[];
+                counter=counter+1;
+                cols=cm(counter,:);
+                axs(1)=plot(median(errors_real,2),'d','Linewidth',2,'color',cols);
+                axs(2)=plot(median(errors_batch_pca,2),'+','Linewidth',2,'color',cols);
+                axs(3)=plot(median(errors_online,2),'*','Linewidth',2,'color',cols);
+                legend(axs,{'real','batch pca','online'}, 'Interpreter', 'none')
+                xlabel(fname)
+                ylabel('Projection error')
+                drawnow
+            end
+        end
+    end
+end
+
 %%
 errors_paper=[];
 errors_paper_half=[];

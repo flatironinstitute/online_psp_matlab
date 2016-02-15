@@ -1,4 +1,4 @@
-function [errors_real,errors_batch_pca,errors_online,times_,ff_name]=Online_PCA_simulations_1(folder_exp,options_simulations,options_generator,options_algorithm)
+function [errors_real,errors_batch_pca,errors_online,times_,ff_name]=Online_PCA_simulations(folder_exp,options_simulations,options_generator,options_algorithm)
 %%
 method_random=options_generator.method;
 
@@ -10,6 +10,7 @@ outer_iter=options_simulations.outer_iter;
 n0=options_simulations.n0;
 niter=options_simulations.niter;
 nstep_skip_EIGV_errors=options_simulations.nstep_skip_EIGV_errors;
+compute_error=options_simulations.compute_error;
 
 pca_algorithm=options_algorithm.pca_algorithm;
 set(0, 'DefaulttextInterpreter', 'none')
@@ -26,10 +27,16 @@ if d>q
             options_generator.compute_eig=0;
             [x,~,~] = low_rank_rnd_vector(d,q,n,method_random,options_generator);
         else
-            options_generator.compute_eig=1;
+            if compute_error
+                options_generator.compute_eig=1;
+            else
+                options_generator.compute_eig=0;
+            end
             [x,eig_vect_real,eig_val_real] = low_rank_rnd_vector(d,q,n,method_random,options_generator);
-            [eig_vect_batch_pca,~,eig_val_batch_pca]=pca(x,'NumComponents',q);
-            eig_val_batch_pca=eig_val_batch_pca(1:q);
+            if compute_error
+                [eig_vect_batch_pca,~,eig_val_batch_pca]=pca(x,'NumComponents',q);
+                eig_val_batch_pca=eig_val_batch_pca(1:q);
+            end
         end
         
         
@@ -49,10 +56,11 @@ if d>q
             learning_rate=.1;
         end
         
-                
-        errors_real(n0,ll)=compute_reconstruction_error(eig_vect_real,vectors);
-        errors_batch_pca(n0,ll)=compute_reconstruction_error(eig_vect_batch_pca,vectors);
-        errors_online(n0,ll)=compute_reconstruction_error(eig_vect_batch_pca,vectors);
+        if compute_error
+            errors_real(n0,ll)=compute_reconstruction_error(eig_vect_real,vectors);
+            errors_batch_pca(n0,ll)=compute_reconstruction_error(eig_vect_batch_pca,vectors);
+            errors_online(n0,ll)=compute_reconstruction_error(eig_vect_batch_pca,vectors);
+        end
         
         tic
         for outit=1:outer_iter
@@ -75,7 +83,7 @@ if d>q
                         Ysq = Ysq + Y.^2;                        
                 end
                 
-                if mod(idx,nstep_skip_EIGV_errors) ==  0 || idx==n*outer_iter || i == round(n*outer_iter/2)
+                if compute_error && (mod(idx,nstep_skip_EIGV_errors) ==  0 || idx==n*outer_iter || i == round(n*outer_iter/2))
                     
                    
                     [eig_vect_online,~,eigval_online]=pca(x(1:idx,:),'NumComponents',q);
@@ -113,6 +121,12 @@ else
     errors_online=[];
     times_=[];
     ff_name='';
+end
+
+if ~compute_error
+    errors_real=[];
+    errors_batch_pca=[];
+    errors_online=[];
 end
 xlabel('Samples')
 ylabel('Eigenspace Estimation Error Pq vs Pqhat')
