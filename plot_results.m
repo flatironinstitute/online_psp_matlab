@@ -254,8 +254,7 @@ saveas(gcf,'TimeIter.fig')
 
 %%
 clear all
-clear all
-files=dir('*.mat')
+files=dir('*.mat');
 files = struct2cell(files);
 files = files(1,:);
 mu_time=[];
@@ -267,6 +266,9 @@ mu_err_online=[];
 mad_err_real=[];
 mad_err_batch=[];
 mad_err_online=[];
+err_real=[];
+err_batch=[];
+err_online=[];
 d_s=[];
 q_s=[];
 rho_s=[];
@@ -287,10 +289,23 @@ for f=1:numel(files)
    mad_err_real(f)=mad(errors_real(idx_not_nan(end),:),1,2);
    mad_err_batch(f)=mad(errors_batch_pca(idx_not_nan(end),:),1,2);
    mad_err_online(f)=mad(errors_online(idx_not_nan(end),:),1,2);
-   d_s(f)=d;
-   q_s(f)=q;
-   rho_s(f)=options_generator.rho;
-   methods_{f}=test_method;      
+%    d_s(f)=d;
+%    q_s(f)=q;
+%    rho_s(f)=options_generator.rho;
+         
+   num_els=numel(errors_real(idx_not_nan(end),:));
+   err_real=[err_real errors_real(idx_not_nan(end),:)];
+   err_batch=[err_batch errors_batch_pca(idx_not_nan(end),:)];
+   err_online=[err_online errors_online(idx_not_nan(end),:)];
+   d_s=[d_s repmat(d,1,num_els)];
+   q_s=[q_s repmat(q,1,num_els)];
+   rho_s=[rho_s repmat(options_generator.rho,1,num_els)];
+   newm={};
+   for ll=1:num_els
+    newm{ll}=test_method;
+   end
+   methods_=[methods_ newm];
+
 end
 %%
 figure
@@ -325,16 +340,25 @@ xlabel(xvar_name, 'Interpreter', 'none')
 ylabel('Projection Error')
 %%
 figure
-q=16;
-error=mu_err_real;
+jj=0;
+error=err_real;
+xvar=rho_s;
+xax=unique(xvar);
+cm1=hot(8);
+cm2=(gray(10));
 stats_={'nanmedian',@(X) mad(X,1)};
-idx=find(col_var==q & strcmp(methods_,'H_AH_NN_PCA'));
-[me_h,ma_h]=grpstats(error(idx),xvar(idx),stats_);
-errorbar(xax+normrnd(0,.01,size(xax)), me_h,ma_h,'o','MarkerSize',20,'MarkerFaceColor',cm1(5,:),'color',cm1(5,:));
-hold on
-idx=find(col_var==q & strcmp(methods_,'IPCA'));
-[me_i,ma_i]=grpstats(error(idx),xvar(idx),stats_);
-errorbar(xax+normrnd(0,.01,size(xax)), me_i,ma_i,'o','MarkerSize',20,'MarkerFaceColor',cm2(5,:),'color',cm2(5,:));
-legend('H_AH_NN_PCA','IPCA')
-
+col_var=d_s;
+for cv=[16 64 256 1024]
+    jj=jj+1;
+    subplot(2,2,jj)
+    xvar=rho_s;    
+    idx=find(col_var==cv & strcmp(methods_,'H_AH_NN_PCA'));
+    [me_h,ma_h]=grpstats(error(idx),xvar(idx),stats_);
+    errorbar(xax+normrnd(0,.01,size(xax)), me_h,ma_h,'o','MarkerSize',20,'MarkerFaceColor',cm1(5,:),'color',cm1(5,:));
+    hold on
+    idx=find(col_var==cv & strcmp(methods_,'IPCA'));
+    [me_i,ma_i]=grpstats(error(idx),xvar(idx),stats_);
+    errorbar(xax+normrnd(0,.01,size(xax)), me_i,ma_i,'o','MarkerSize',20,'MarkerFaceColor',cm2(5,:),'color',cm2(5,:));
+    legend('H_AH_NN_PCA','IPCA')
+    end
 
