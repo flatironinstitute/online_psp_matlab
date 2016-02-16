@@ -11,6 +11,7 @@ n0=options_simulations.n0;
 niter=options_simulations.niter;
 nstep_skip_EIGV_errors=options_simulations.nstep_skip_EIGV_errors;
 compute_error=options_simulations.compute_error;
+initialize_PCA=options_simulations.initialize_PCA;
 
 pca_algorithm=options_algorithm.pca_algorithm;
 set(0, 'DefaulttextInterpreter', 'none')
@@ -39,9 +40,14 @@ if d>q
             end
         end
         
-        
-        n0=max(n0,q);
-        [eigvect_init,~,eigval_init]=pca(x(1:(n0+1),:),'NumComponents',q);
+        if initialize_PCA
+            n0=max(n0,q);
+            [eigvect_init,~,eigval_init]=pca(x(1:(n0+1),:),'NumComponents',q);            
+        else
+            n0=1;
+            eigval_init=normrnd(0,.1,q,1);
+            eigvect_init=normrnd(0,.1,d,q);
+        end
         
         values=eigval_init(1:q);
         vectors=eigvect_init;
