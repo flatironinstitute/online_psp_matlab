@@ -105,22 +105,23 @@ for q=[2 4 16 64 256 512]
         end
     end
 end
-%%
+%% time per cycle test
 format compact
 options_simulations.compute_error=0;
 options_simulations.niter=10;
+options_simulations.initialize_PCA=0;
 
 t = datetime('now');
 folder_exp=['n0_' num2str(options_simulations.n0) '_niter' num2str(options_simulations.niter) '_' char(t)];
 mkdir(folder_exp)
 hold all
 legends={};
-options_generator.n=10000;
+options_generator.n=400;
 cm=hot(220);
 counter=0;
 
-for q=[128 256 512]
-    for d=[65536]
+for q=[4 16 32 64 128 256 512 1024]
+    for d=[8192 8192*4]
         for rho=[.5]
             options_generator.q=q;
             options_generator.d=d;          
@@ -168,6 +169,7 @@ for q=[128 256 512]
             
             options_algorithm=struct();
             options_algorithm.pca_algorithm='SGA';
+            options_algorithm.method='SGA';
             options_algorithm.q=options_generator.q;
             options_algorithm.do_sort=1;
             options_algorithm.tol=1e-7;
