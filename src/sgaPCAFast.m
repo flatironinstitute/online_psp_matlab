@@ -17,7 +17,7 @@ gamma=options.gamma;
 q=options.q;
 do_sort=options.do_sort;
 method=options.method;
-
+d=size(U,1);
 k = size(U,2);
 enable_checks=0;
 
@@ -38,21 +38,21 @@ end
 y=(x*U);
 U=U';
 %DU=zeros(size(U));
-
 % apply update rule on eigenvectors. 
 switch method
     case 'GHA'
        % DU=y'*x + U*tril(y*y');
-       U=U+gamma*(y'*x - tril(y'*y)*U);
-%        for i=1:q
-%              DU(i,:)=y(i)*x-y(i)*(y(1:i)*U(1:i,:));
-%        end
+%        U=U+gamma*(y'*x - tril(y'*y)*U);
+         error('work in progress')
 
     case 'SGA'
-        U=U + gamma*(y'*x - 2*tril(y'*y)*U + diag(diag(y'*y,0))*U);
-%         for i=1:q
-%             U(i,:)=U(i,:)+gamma*(y(i)*x - 2*y(i)*(y(1:i)*U(1:i,:)) + y(i)*y(i)*U(i,:));
-%         end
+       phi=U*x';
+       res1=bsxfun(@times,phi,U);
+       cum_res=cumsum(res1(1:end-1,:));
+       res=[zeros(1,d); cum_res];
+       U= U + gamma*bsxfun(@times,bsxfun(@plus,-res1-2*res,x),phi);
+%         U2=U + gamma*(y'*x - 2*tril(y'*y)*U + sparse(diag(diag(y'*y,0)))*U);       
+
         
     otherwise
         error 'unknown method'

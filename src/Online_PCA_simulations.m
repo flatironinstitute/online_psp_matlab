@@ -91,16 +91,18 @@ if d>q
                 
                 if compute_error && (mod(idx,nstep_skip_EIGV_errors) ==  0 || idx==n*outer_iter || i == round(n*outer_iter/2))
                     
-                   
+                    
                     [eig_vect_online,~,eigval_online]=pca(x(1:idx,:),'NumComponents',q);
                     eigval_online=eigval_online(1:q);                        
                     
                     
-                    if isequal('H_AH_NN_PCA',pca_algorithm)
+                    if isequal('H_AH_NN_PCA',pca_algorithm) 
                         %disp(['iteration:' num2str(i) ', computing vectors...'])
                         vectors = orth((pinv(diag(ones(q,1))+M(1:q,1:q))*W(1:q,:))');
                     end
-                    
+                    if isequal('SGA',pca_algorithm) || isequal('GHA',pca_algorithm)
+                        vectors = orth(vectors);
+                    end
                     errors_real(idx,ll)=compute_reconstruction_error(eig_vect_real,vectors);
                     errors_batch_pca(idx,ll)=compute_reconstruction_error(eig_vect_batch_pca,vectors);
                     errors_online(idx,ll)=compute_reconstruction_error(eig_vect_online,vectors);
