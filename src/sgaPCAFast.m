@@ -50,7 +50,7 @@ switch method
        res1=bsxfun(@times,phi,U);
        cum_res=cumsum(res1(1:end-1,:));
        res=[zeros(1,d); cum_res];
-       U= U + gamma*bsxfun(@times,bsxfun(@plus,-res1-2*res,x),phi);
+       U = U + gamma*bsxfun(@times,bsxfun(@plus,-res1-2*res,x),phi);
 %         U2=U + gamma*(y'*x - 2*tril(y'*y)*U + sparse(diag(diag(y'*y,0)))*U);       
 
         

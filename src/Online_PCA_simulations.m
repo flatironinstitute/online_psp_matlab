@@ -12,6 +12,8 @@ niter=options_simulations.niter;
 nstep_skip_EIGV_errors=options_simulations.nstep_skip_EIGV_errors;
 compute_error=options_simulations.compute_error;
 initialize_PCA=options_simulations.initialize_PCA;
+error_online=options_simulations.error_online;
+
 
 pca_algorithm=options_algorithm.pca_algorithm;
 set(0, 'DefaulttextInterpreter', 'none')
@@ -20,6 +22,7 @@ if d>q
     errors_real=nan*zeros(n*outer_iter,niter);
     errors_batch_pca=nan*zeros(n*outer_iter,niter);
     errors_online=nan*zeros(n*outer_iter,niter);
+    errors_ortho=nan*zeros(n*outer_iter,niter);
     times_=nan*zeros(n*outer_iter,niter);
     for ll=1:niter
         disp(ll)
@@ -59,7 +62,7 @@ if d>q
             %Ysq=max(10*ones(size(W,1),1),sum((W*x(1:n0,:)').^2,2));
             Ysq=0*10*ones(size(W,1),1)+sum((W*x(1:n0,:)').^2,2);
         elseif isequal('GHA',pca_algorithm) || isequal('SGA',pca_algorithm)
-            learning_rate=.1;
+            learning_rate=1;
         end
         
         if compute_error
@@ -89,20 +92,25 @@ if d>q
                         Ysq = Ysq + Y.^2;                        
                 end
                 
-                if compute_error && (mod(idx,nstep_skip_EIGV_errors) ==  0 || idx==n*outer_iter || i == round(n*outer_iter/2))
-                    
-                    
-                    [eig_vect_online,~,eigval_online]=pca(x(1:idx,:),'NumComponents',q);
-                    eigval_online=eigval_online(1:q);                        
-                    
-                    
-                    if isequal('H_AH_NN_PCA',pca_algorithm) 
-                        %disp(['iteration:' num2str(i) ', computing vectors...'])
-                        vectors = orth((pinv(diag(ones(q,1))+M(1:q,1:q))*W(1:q,:))');
+                if (numel(find(isnan(vectors)))==0) && compute_error && (mod(idx,nstep_skip_EIGV_errors) ==  0 || idx==n*outer_iter || i == round(n*outer_iter/2))
+                    if error_online                    
+                        [eig_vect_online,~,eigval_online]=pca(x(1:idx,:),'NumComponents',q);
+                        eigval_online=eigval_online(1:q);                        
+                    else
+                        eig_vect_online=NaN;
                     end
                     
-                    if isequal('SGA',pca_algorithm) || isequal('GHA',pca_algorithm)                        
-                        vectors = orth(vectors);
+                    if isequal('H_AH_NN_PCA',pca_algorithm) 
+                        F=(pinv(diag(ones(q,1))+M(1:q,1:q))*W(1:q,:))';
+                        errors_ortho(idx,ll) = (norm(F'*F-eye(q),'fro')/norm(F*F','fro'));
+                        %vectors=F;
+                        vectors = orth(F);
+%                         vectors = ((pinv(diag(ones(q,1))+M(1:q,1:q))*W(1:q,:))');
+
+                    end
+                    
+                    if isequal('SGA',pca_algorithm) || isequal('GHA',pca_algorithm)                             
+                            vectors = orth(vectors);
                     end
                     
                     errors_real(idx,ll)=compute_reconstruction_error(eig_vect_real,vectors);

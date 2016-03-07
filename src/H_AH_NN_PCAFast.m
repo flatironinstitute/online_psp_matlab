@@ -59,9 +59,7 @@ function [M,W,Y]=H_AH_NN_PCAFast(M,W,Y,x,options)
     % Update weights
     %W = W + Y_tmp*x' - W.*repmat(Y_tmp_sq,[1 d]);
      W = W +  bsxfun(@times,Y_tmp,x') - bsxfun(@times,W,Y_tmp_sq);
-%     A_= bsxfun(@times,Y_tmp,x');
-%     B_= bsxfun(@times,W,Y_tmp_sq);
-%     W = W +  A_ - B_;
+
 
     if isnan(sum(W(:)))
         W(isnan(W)) = 0;
