@@ -1,13 +1,15 @@
 function [M,W,Y]=H_AH_NN_PCAFast(M,W,Y,x,options)
-    % function implementing Hebbian Antihebbian learning for subspace learning
+
+    % function implementing Hebbian Anti-hebbian networks for subspace learning
     % [M,W,Y]=H_AH_NN_PCAFast(M,W,Y,x,options)
     % W: forward connection matrix
     % M: lateral connection matrix
-    % Y: 
+    % Y: output space
     % options.update_method: method to perform the update of Y variable. 'ls' (least-square),
     % 'coord_desc' (coordinate descent), or 'mat_mult updated' (update all coordinated simultaneously)
     % options.tol: tolerance on convergence.
-    % reference: Pehlevan et al, Neural Computation, 2015   
+    % options.lambda: factor influencing decorrelation (0 no decorrelatoin applied, see NIPS 2015)
+    % reference: Pehlevan et al, Neural Computation, 2015. Pehlevan et al, NIPS, 2015   
     % gamma=1./Ysq;
     
     
@@ -19,9 +21,14 @@ function [M,W,Y]=H_AH_NN_PCAFast(M,W,Y,x,options)
         options.update_method='ls';
     end
     
+     if ~isfield(options,'lambda')
+        options.lambda=0;
+     end
+    
+    
     q=options.q;      
     gamma=options.gamma;    
-    
+    lambda=options.lambda;
     
     x=x';
     d=size(W,2);
@@ -65,7 +72,7 @@ function [M,W,Y]=H_AH_NN_PCAFast(M,W,Y,x,options)
         W(isnan(W)) = 0;
     end
 
-    M = M + bsxfun(@times,Y_tmp,Y') - bsxfun(@times,M,Y_tmp_sq);
+    M = M + (1+lambda)*bsxfun(@times,Y_tmp,Y') - bsxfun(@times,M,Y_tmp_sq);
    % M = M + Y_tmp*Y' - M.*repmat(Y_tmp_sq,[1 q]);
     M(isnan(M)) = 0;
     %stupid comment
