@@ -48,7 +48,6 @@ for q=16% [64 256 512]
             disp(rho)
             options_generator.rho=rho;
             
-            
 %             options_algorithm=struct();
 %             options_algorithm.pca_algorithm='IPCA';
 %             options_algorithm.q=options_generator.q;

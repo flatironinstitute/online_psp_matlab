@@ -4,7 +4,7 @@ files=dir('*.mat')
 figure
 hold all
 legends={};
-cm=colormap(hot(numel(files)));
+cm=colormap(hot(numel(files)+10));
 d_s=[];
 q_s=[];
 err_s=[];
@@ -13,7 +13,7 @@ for f=1:numel(files)
    disp(files(f).name)
    load(files(f).name,'d','q','errors_real')
    legends{f}=files(f).name;
-   plot((median(errors_real,2)),'d','Linewidth',2,'Color',cm(f,:))
+   plot((median(errors_real,2)),'d','Linewidth',2,'Color',cm(f+5,:))
    err_s=[ err_s errors_real(end,:)'];
    d_s=[d_s d];
    q_s=[q_s q];
@@ -53,6 +53,10 @@ for f=1:numel(files)
    disp(f)
    load(files{f},'options_algorithm','options_generator','options_simulations','d','q','errors_online')
    errors=errors_online;
+   if ~isfield(options_generator,'rho')
+        warning('setting rho to 0 because not existing field!')
+        options_generator.rho=0;
+   end
    legends{f}=files{f};
    test_method=options_algorithm.pca_algorithm;
    %legends{f}=['input dim=' num2str(d)];
@@ -204,7 +208,7 @@ files=dir('*.mat')
 % files=files(dirFlags);
 files = struct2cell(files);
 files = files(1,:);
-nfiles=numel(files);
+nfiles=numel(files)
 cm1=hot(20+nfiles);
 cm2=flipud(gray(nfiles));
 cm3=flipud(autumn(nfiles));
@@ -229,7 +233,7 @@ for f=1:numel(files)
         shift=1;
    else
         symbol='s';
-        colr=cm3(ff*2,:);
+        colr=cm3(f*2,:);
         shift=0;
    end    
    
@@ -306,7 +310,9 @@ ttime=times_tot;
 cm1=hot(8);
 cm2=(gray(10));
 cm3=(autumn(10));
-stats_={'nanmean',@(X) mad(X,1),@(X) quantile(X,.25),@(X) quantile(X,.75)};
+% stats_={'nanmean',@(X) mad(X,1),@(X) quantile(X,.25),@(X) quantile(X,.75)};
+stats_={'nanmean',@(X) iqr(X),@(X) quantile(X,.25),@(X) quantile(X,.75)};
+
 col_var=d_s;
 for cv=unique(col_var)
     if ~isempty(find(col_var==cv,1))
@@ -349,15 +355,18 @@ for cv=unique(col_var)
 end
 
 %% error plot
-figure
+figure('name','5_percentile')
+
 jj=0;
-error=err_online;
+error=err_batch;
 
 cm1=hot(8);
 cm2=(gray(10));
 cm3=(autumn(10));
 
 stats_={'nanmedian',@(X) mad(X,1)};
+stats_={@(X) quantile(X,.05),@(X) 0};
+
 col_var=d_s;
 col_var2=q_s;
 for cv=[16 64 256 1024]
@@ -379,23 +388,49 @@ for cv=[16 64 256 1024]
             xvar=rho_s(idx);
             xax=unique(xvar);
             [me_i,ma_i]=grpstats(error(idx),xvar,stats_);
-            errorbar(xax+normrnd(0,.01,size(xax)), me_i,ma_i,'o-','MarkerSize',7,'MarkerFaceColor',cm2(5,:),'color',cm2(5,:));
+            errorbar(xax+normrnd(0,.001,size(xax)), me_i,ma_i,'o-','MarkerSize',7,'MarkerFaceColor',cm2(5,:),'color',cm2(5,:));
             
              
             idx=find(col_var==cv & col_var2==cv2 & strcmp(methods_,'SGA'));
             xvar=rho_s(idx);
             xax=unique(xvar);
             [me_i,ma_i]=grpstats(error(idx),xvar,stats_);
-            errorbar(xax+normrnd(0,.01,size(xax)), me_i,ma_i,'o-','MarkerSize',7,'MarkerFaceColor',cm3(5,:),'color',cm3(5,:));
-           
-            
+            errorbar(xax+normrnd(0,.001,size(xax)), me_i,ma_i,'o-','MarkerSize',7,'MarkerFaceColor',cm3(5,:),'color',cm3(5,:));
+            set(gca,'xscale','log')
             set(gca,'yscale','log')
             legend('H_AH_NN_PCA','IPCA','SGA')
 %             ylim([.00001 2])
+            axis tight
             xlabel('rho')
             ylabel('Projection Error')
             title(['d=' num2str(cv) ' q=' num2str(cv2)])
         end
     end
 end
+%% error plot online
+clear all
+files_to_analize = uipickfiles()
+%%
+figure('name','error_online')
 
+for jj=1:numel(files_to_analize)
+    load(files_to_analize{jj})
+    idx=find(~isnan(quantile(errors_real',.05)));
+
+    subplot(4,3,jj)
+    
+    hold all
+    plot(idx,quantile(errors_real(idx,:)',.05),'-o')
+    plot(idx,quantile(errors_online(idx,:)',.05),'-o')
+    plot(idx,quantile(errors_batch_pca(idx,:)',.05),'-o')
+    xlabel('Samples')
+    ylabel('Projection error')
+    title(['d=' num2str(d) ',q=' num2str(q) ',algo=' pca_algorithm ',rho=' num2str(options_generator.rho)])
+    axis tight
+    set(gca,'xscale','log')
+    set(gca,'yscale','log')
+    set(gca, 'box', 'off')
+    
+    
+end
+legend('model-based','online','data-based')

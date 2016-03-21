@@ -130,7 +130,11 @@ if d>q
     
     
     drawnow
-    ff_name=['n' num2str(n) '_d' num2str(d) '_q' num2str(q)  '_rho' num2str(options_generator.rho)  '_lmq' num2str(options_generator.lambda_q)  '_algo_' pca_algorithm];
+    if exist('rho')
+        ff_name=['n' num2str(n) '_d' num2str(d) '_q' num2str(q)  '_rho' num2str(options_generator.rho)  '_lmq' num2str(options_generator.lambda_q)  '_algo_' pca_algorithm];
+    else
+        ff_name=['n' num2str(n) '_d' num2str(d) '_q' num2str(q) '_algo_' pca_algorithm];
+    end
     save(fullfile(folder_exp,[ff_name '.mat']))
     
 else

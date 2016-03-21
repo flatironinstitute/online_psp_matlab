@@ -13,7 +13,8 @@ function [X,eig_vect,eig_val] = low_rank_rnd_vector(d,q,n,method,options)
 % method: 'brownian_motion': covariance matrix in the form c_ij=max(i,j)
 %         'spiked_covariance_normalized':  principal eigenvalues have the profile rho linspace(1,lambda_q,q)
 %         'spiked_covariance': principal eigenvalues have the profile rho+ gap + slope*[q-1:-1:0]'
-%
+%         'ORL': use the orl database
+%         'MNIST': use the MNIST database
 % options: if 'spiked_covariance': 
 %                     options.rho: size of non principal eigenvalues (i.e. noise)
 %                     options.gap: difference between rho and first eigenvalue
@@ -106,7 +107,29 @@ if isequal(method,'spiked_covariance') || isequal(method,'spiked_covariance_norm
     % vectors=vectors(:,end:-1:end-4);
     % [U,S,V] = svd(C,'econ');
     % disp('SVD')
+elseif isequal(method,'ORL') || isequal(method,'MNIST')
     
+    if isequal(method,'ORL')        
+        load('ORL_32x32');
+        x1=fea';
+        mu=mean(x1,2);
+        x=bsxfun(@minus,x1,mu);  
+        load('pca_ORL') % load data eignvalues and eigenvectors
+    else
+        x1 = loadMNISTImages('train-images-idx3-ubyte');
+        load('pca_MNIST') % load data eignvalues and eigenvectors
+        mu=mean(x1,2);
+        x=bsxfun(@minus,x1,mu);          
+    end
+    
+%     [eig_vect,~,eig_val]=pca(x','NumComponents',q);
+    eig_val=eig_val(1:q);
+    eig_vect=eig_vect(:,1:q);
+    if n<=size(x,2)
+        X=x(:,randperm(n))';
+    else        
+        X=x(:,randsample(1:size(x,2),n,1))';
+    end
 elseif isequal(method,'brownian_motion')
     
     x1 = normrnd(0,1/sqrt(d),n,d);
