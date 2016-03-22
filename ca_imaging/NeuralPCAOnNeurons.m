@@ -49,7 +49,7 @@ for outit=1:outer_iter
         idx=(outit-1)*T + i;
         tic
         options.gamma=1./Ysq;
-        [M,W,Y] = H_AH_NN_PCAFast(M,W,Y, Yr(i,:),options);
+        [M,W,Y] = H_AH_NN_PCAFast(M,W,Y, Yr(i,:),options);        
         Ysq = Ysq + Y.^2;
         imagesc(W)                
         drawnow

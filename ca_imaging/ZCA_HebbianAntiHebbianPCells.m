@@ -23,14 +23,14 @@ x=M;
 %%
 tic
 sigma = x * x' / size(x, 2);
-k=30
+k=30;
 [U,S,V] = svds(sigma,k);
 
-xRot = U' * x;          % rotated version of the data. 
+xRot = U' * x;          % rotated version of the data.
 
-xTilde = U(:,1:k)' * x; % reduced dimension representation of the data, 
-                        % where k is the number of eigenvectors to keep
-epsilon=0;
+xTilde = U(:,1:k)' * x; % reduced dimension representation of the data,
+% where k is the number of eigenvectors to keep
+epsilon=n0;
 zca_whitesig = U * diag(1./sqrt(diag(S) + epsilon)) * U' * x;
 % zca_whitesig = diag(1./sqrt(diag(S) + epsilon)) * U' * x;
 
@@ -54,8 +54,8 @@ rec_error=norm(M-U*U'*M,2)/norm(M,2)
 %% calculate show masks
 for kk=1:k1
     subplot(2,1,1)
-%     zca_wsigmask=reshape(zca_whitesig',[d1 d2 30]);
-%     imagesc(zca_wsigmask(:,:,kk))
+    %     zca_wsigmask=reshape(zca_whitesig',[d1 d2 30]);
+    %     imagesc(zca_wsigmask(:,:,kk))
     axis image
     subplot(2,1,2)
     wsigmask=reshape(whitesig',[d1 d2 k1]);
@@ -70,21 +70,21 @@ orgw=whiteningMatrix'*whitesig;
 org=dewhiteningMatrix*whitesig;
 
 %%
-[o1, o2,o3]=fastica(whitesig,'numOfIC',30);
+[o1, o2,o3]=fastica(whitesig,'numOfIC',3);
 % [zo1, zo2,zo3]=fastica(zca_whitesig,'numOfIC',30);
-o1mask=reshape(o1',[d1 d2 30]);
+o1mask=reshape(o1',[d1 d2 3]);
 % zo1mask=reshape(zo1',[d1 d2 30]);
 
 for kk=1:30
     subplot(2,1,1)
-imagesc(o1mask(:,:,kk));
-axis image
+    imagesc(o1mask(:,:,kk));
+    axis image
     subplot(2,1,2)
-% imagesc(zo1mask(:,:,kk));
-axis image
-
-colormap gray
-pause
+    % imagesc(zo1mask(:,:,kk));
+    axis image
+    
+    colormap gray
+    pause
 end
 %%
 
@@ -92,43 +92,52 @@ q=5;
 d=d1*d2;
 W=rand(q,d)*.1;
 M=rand(q,q)*.1;
-
+Y=rand(q,1)*.1;
 options_algorithm=struct();
 options_algorithm.pca_algorithm='H_AH_NN_PCA';
 options_algorithm.q=q;
 options_algorithm.update_method='ls';
 options_algorithm.tol=1e-5;
+options_algorithm.lambda=.5;
+
 
 Ysq=10*ones(size(W,1),1);
 
 
 for iter=1:10
-        disp(iter)
-            scramble=randperm(T);
-
-for kk=1:T
-
-    options_algorithm.gamma=1./Ysq;
-    [M,W,Y]=H_AH_NN_PCAFast(M,W,Y,x(scramble(kk),:),options_algorithm);                       
-    Ysq = Ysq + Y.^2;  
-end
+    disp(iter)
+    scramble=randperm(T);
+    
+    for kk=1:T
+        options_algorithm.gamma=1./Ysq;
+        [M,W,Y]=H_AH_NN_PCAFast(M,W,Y,x(scramble(kk),:),options_algorithm);
+        Ysq = Ysq + Y.^2;
+    end
 end
 
 for kk=1:size(W,1)
-   mask=reshape(W(kk,:),[d1 d2]);
-   imagesc(mask)
-   axis image
-   pause
+    mask=reshape(W(kk,:),[d1 d2]);
+    imagesc(mask)
+    axis image
+    pause
 end
 %%
-X=x';
+close all
+%X=x';
+X=bsxfun(@times,x',1./(std(x',[],2)));
+lambda=500000; % for patch
+% X=(x')./(max(x(:))-min(x(:)));
+% lambda=1.5;
+%X=X/norm(X,'fro');
+% X=zca_whitesig';
+% lambda=250;
 clc
 tic
 T=size(X,2);
-% T=1000;
-m=3;
+m=10;
 n=size(X,1);
-lambda=10;
+
+w_nonneg=1;
 tolerance=.0001;
 active_set=[];
 W=zeros(m,n);
@@ -139,8 +148,9 @@ detected_clusters=[];
 newX=[];
 y_ts=[];
 pixels=randperm(T);
+pixels=1:T;
 %
-for nnn=1:3
+for nnn=1:2%:3
     for iter=pixels
         x_t=X(:,iter);
         %     clusts=randi(num_clusts);
@@ -166,10 +176,11 @@ for nnn=1:3
         
         for i=1:numel(y_t)
             if ~ismember(i,active_set)
-                delta_y=norm(x_t,2)^2-sum(y_t.^2)-y_t(i).^2;
-                if delta_y^2<=lambda || delta_y<0
+                delta_y=norm(x_t,2)^2-sum(y_t.^2)-y_t(i).^2;                
+                if delta_y^2<=lambda || delta_y<0                   
                     y_t(i)=0;
                 else
+                    disp(delta_y^2)
                     y_t(i)=sqrt(delta_y);
                     active_set=[active_set i];
                     disp('add component')
@@ -181,8 +192,13 @@ for nnn=1:3
             y_t_hat(i)=y_t_hat(i)+y_t(i).^2;
             if ismember(i, active_set)
                 for j=1:n
-                    W(i,j)= W(i,j)+y_t(i)*(x_t(j)-W(i,j)*y_t(i))/y_t_hat(i);
+                    if w_nonneg
+                        W(i,j) = max(0,W(i,j)+y_t(i)*(x_t(j)-W(i,j)*y_t(i))/y_t_hat(i));
+                    else
+                        W(i,j)= W(i,j)+y_t(i)*(x_t(j)-W(i,j)*y_t(i))/y_t_hat(i);
+                    end
                 end
+                
                 for j=1:m
                     if i~=j
                         M(i,j)= M(i,j)+y_t(i)*(y_t(i)-M(i,j)*y_t(i))/y_t_hat(i);
@@ -197,12 +213,21 @@ for nnn=1:3
         
     end
 end
-%%
+%
+close all
 for kk=1:size(W,1)
-   mask=reshape(W(kk,:),[d1 d2]);
-   imagesc(mask)
-   axis image
-   pause
+    subplot(2,1,1)
+    mask=reshape(W(kk,:),[d1 d2]);    
+    imagesc(mask)
+    axis image    
+    subplot(2,1,2)
+    hold off
+    plot(y_ts(kk,end-T:end))  
+    hold all
+    thr=mean(mask(:))+1*std(mask(:));
+    plot(nansum(X.*repmat(reshape(mask',[d1*d2,1]),[1,T]),1))
+    
+    pause
 end
 %%
 reord=[];
@@ -216,10 +241,10 @@ classes=unique(clusters);
 colormap(hot)
 
 for c = classes
-   mask=zeros(size(clusters));
-   mask(clusters==c)=1;
-   imagesc(reshape(mask(reord),[d1 d2]))
-   pause
+    mask=zeros(size(clusters));
+    mask(clusters==c)=1;
+    imagesc(reshape(mask(reord),[d1 d2]))
+    pause
 end
 %%
 
