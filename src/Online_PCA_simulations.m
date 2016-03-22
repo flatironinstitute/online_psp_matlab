@@ -13,7 +13,7 @@ nstep_skip_EIGV_errors=options_simulations.nstep_skip_EIGV_errors;
 compute_error=options_simulations.compute_error;
 initialize_PCA=options_simulations.initialize_PCA;
 error_online=options_simulations.error_online;
-
+orthonormalize_vectors=options_simulations.orthonormalize_vectors;
 
 pca_algorithm=options_algorithm.pca_algorithm;
 set(0, 'DefaulttextInterpreter', 'none')
@@ -23,9 +23,11 @@ if d>q
     errors_batch_pca=nan*zeros(n*outer_iter,niter);
     errors_online=nan*zeros(n*outer_iter,niter);
     errors_ortho=nan*zeros(n*outer_iter,niter);
+    errors_decorr=nan*zeros(n*outer_iter,niter);
     times_=nan*zeros(n*outer_iter,niter);
     for ll=1:niter
         disp(ll)
+        Cy=[];
         %generate random samples
         if isequal(method_random,'brownian_motion') && ll>1 % eigenvalues are only computed once since the covariance matrix is always the same
             options_generator.compute_eig=0;
@@ -60,6 +62,8 @@ if d>q
             W = vectors';
             Y = zeros(q,1);
             %Ysq=max(10*ones(size(W,1),1),sum((W*x(1:n0,:)').^2,2));
+            Y_=(W*x(1:n0,:)');
+            Cy=Y_*Y_';
             Ysq=0*10*ones(size(W,1),1)+sum((W*x(1:n0,:)').^2,2);
         elseif isequal('GHA',pca_algorithm) || isequal('SGA',pca_algorithm)
             learning_rate=1;
@@ -104,18 +108,26 @@ if d>q
                         F=(pinv(diag(ones(q,1))+M(1:q,1:q))*W(1:q,:))';
                         errors_ortho(idx,ll) = (norm(F'*F-eye(q),'fro')/norm(F*F','fro'));
                         %vectors=F;
-                        vectors = orth(F);
-%                         vectors = ((pinv(diag(ones(q,1))+M(1:q,1:q))*W(1:q,:))');
-
+                        if orthonormalize_vectors
+                            vectors = orth(F);
+                        else
+                            vectors=F;
+                        end
+                        Cy=Cy+Y*Y'; 
+                        errors_decorr(idx,ll)=10*log10(norm((Cy-eye(q))/i,'fro')^2);
                     end
                     
-                    if isequal('SGA',pca_algorithm) || isequal('GHA',pca_algorithm)                             
+                    if isequal('SGA',pca_algorithm) || isequal('GHA',pca_algorithm)   
+                        if orthonormalize_vectors
                             vectors = orth(vectors);
+                        end
                     end
                     
                     errors_real(idx,ll)=compute_reconstruction_error(eig_vect_real,vectors);
                     errors_batch_pca(idx,ll)=compute_reconstruction_error(eig_vect_batch_pca,vectors);
                     errors_online(idx,ll)=compute_reconstruction_error(eig_vect_online,vectors);
+                    
+                    
                 else
                     times_(idx,ll)=toc;
                 end
@@ -130,11 +142,15 @@ if d>q
     
     
     drawnow
-    if exist('rho')
-        ff_name=['n' num2str(n) '_d' num2str(d) '_q' num2str(q)  '_rho' num2str(options_generator.rho)  '_lmq' num2str(options_generator.lambda_q)  '_algo_' pca_algorithm];
-    else
-        ff_name=['n' num2str(n) '_d' num2str(d) '_q' num2str(q) '_algo_' pca_algorithm];
+    ff_name=['n' num2str(n) '_d' num2str(d) '_q' num2str(q)]; 
+    if isfield(options_algorithm,'lambda')
+           ff_name=[ff_name '_lambda' num2str(options_algorithm.lambda)];  
     end
+    if exist('rho')
+        ff_name=[ff_name '_rho' num2str(options_generator.rho) '_lmq' num2str(options_generator.lambda_q)];         
+    end
+    ff_name=[ff_name '_algo_' pca_algorithm];
+    
     save(fullfile(folder_exp,[ff_name '.mat']))
     
 else
