@@ -70,9 +70,12 @@ if d>q
         end
         
         if compute_error
-            errors_real(n0,ll)=compute_reconstruction_error(eig_vect_real,vectors);
-            errors_batch_pca(n0,ll)=compute_reconstruction_error(eig_vect_batch_pca,vectors);
-            errors_online(n0,ll)=compute_reconstruction_error(eig_vect_batch_pca,vectors);
+            if orthonormalize_vectors
+                vectors_err = orth(vectors);
+            end
+            errors_real(n0,ll)=compute_reconstruction_error(eig_vect_real,vectors_err);
+            errors_batch_pca(n0,ll)=compute_reconstruction_error(eig_vect_batch_pca,vectors_err);
+            errors_online(n0,ll)=compute_reconstruction_error(eig_vect_batch_pca,vectors_err);
         end
         
         tic
@@ -106,28 +109,28 @@ if d>q
                     
                     if isequal('H_AH_NN_PCA',pca_algorithm) 
                         F=(pinv(diag(ones(q,1))+M(1:q,1:q))*W(1:q,:))';
-                        errors_ortho(idx,ll) = (norm(F'*F-eye(q),'fro')/norm(F*F','fro'));
-                        %vectors=F;
-                        if orthonormalize_vectors
-                            vectors = orth(F);
-                        else
-                            vectors=F;
-                        end
+                        errors_ortho(idx,ll) = (norm(F'*F-eye(q),'fro')/norm(F*F','fro'));                        
                         Cy=Cy+Y*Y'; 
                         errors_decorr(idx,ll)=10*log10(norm((Cy-eye(q))/i,'fro')^2);
+                        vectors=F;
                     end
                     
-                    if isequal('SGA',pca_algorithm) || isequal('GHA',pca_algorithm)   
+                    if isequal('SGA',pca_algorithm) || isequal('GHA',pca_algorithm)   ||  isequal('H_AH_NN_PCA',pca_algorithm) 
+                        
                         if orthonormalize_vectors
-                            vectors = orth(vectors);
+                            vectors_err = orth(vectors);
+                        else
+                            vectors_err=vectors;
                         end
+                                                
+                    else
+                        vectors_err=vectors;
                     end
                     
-                    errors_real(idx,ll)=compute_reconstruction_error(eig_vect_real,vectors);
-                    errors_batch_pca(idx,ll)=compute_reconstruction_error(eig_vect_batch_pca,vectors);
-                    errors_online(idx,ll)=compute_reconstruction_error(eig_vect_online,vectors);
-                    
-                    
+                    errors_real(idx,ll)=compute_reconstruction_error(eig_vect_real,vectors_err);
+                    errors_batch_pca(idx,ll)=compute_reconstruction_error(eig_vect_batch_pca,vectors_err);
+                    errors_online(idx,ll)=compute_reconstruction_error(eig_vect_online,vectors_err);
+
                 else
                     times_(idx,ll)=toc;
                 end
@@ -146,7 +149,7 @@ if d>q
     if isfield(options_algorithm,'lambda')
            ff_name=[ff_name '_lambda' num2str(options_algorithm.lambda)];  
     end
-    if exist('rho')
+    if isfield(options_generator,'rho')
         ff_name=[ff_name '_rho' num2str(options_generator.rho) '_lmq' num2str(options_generator.lambda_q)];         
     end
     ff_name=[ff_name '_algo_' pca_algorithm];
