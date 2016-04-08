@@ -39,6 +39,7 @@ if d>q
                 options_generator.compute_eig=0;
             end
             [x,eig_vect_real,eig_val_real] = low_rank_rnd_vector(d,q,n,method_random,options_generator);
+           
             if compute_error
                 [eig_vect_batch_pca,~,eig_val_batch_pca]=pca(x,'NumComponents',q);
                 eig_val_batch_pca=eig_val_batch_pca(1:q);
