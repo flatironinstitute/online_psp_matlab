@@ -5,9 +5,10 @@ options_simulations.initialize_PCA=1;
 options_simulations.compute_error=1;
 options_simulations.outer_iter=1;
 options_simulations.n0=0;
-options_simulations.niter=40;
+options_simulations.niter=10;
 options_simulations.nstep_skip_EIGV_errors=128;
 options_simulations.error_online=1;
+options_simulations.orthonormalize_vectors=1;
 options_algorithm=struct;
 %%
 options_generator=struct;
@@ -93,7 +94,7 @@ end
 %% ORL
 options_generator=struct;
 options_generator.method='ORL';%load MNIST Data;
-
+%%
 format compact
 t = datetime('now');
 folder_exp=['ORL_n0_' num2str(options_simulations.n0) '_niter' num2str(options_simulations.niter) '_' char(t)];

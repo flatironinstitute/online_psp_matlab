@@ -1,4 +1,4 @@
-function [M,W,Ysq]=run_H_AH_PCA(x,q,n_iter,n_init_PCA,W,M,Ysq,options_algorithm)
+function [M,W,Ysq]=run_H_AH_PCA(x,q,n_init_PCA,W,M,Ysq,options_algorithm)
 
 if ~exist('options_algorithm')
     options_algorithm=struct();
@@ -8,6 +8,8 @@ if ~exist('options_algorithm')
 end
 options_algorithm.q=q;
 [d,T]=size(x);
+scramble=randperm(T);
+x=x(:,scramble);
 
 if n_init_PCA>0
     if n_init_PCA<q
@@ -35,18 +37,28 @@ end
 Y=rand(q,1)*0;
 Y_out=zeros(q,T);
 
-for iter=1:n_iter
-    disp(['** Iteration:' num2str(iter)])
-    scramble=randperm(T);
-    for kk=1:T
-        if mod(kk,1000)==0
-            disp(kk)
-        end
-        options_algorithm.gamma=1./Ysq;
-        [M,W,Y]=H_AH_NN_PCAFast(M,W,Y,x(:,scramble(kk))',options_algorithm);
-        Ysq = Ysq + Y.^2;
-        Y_out(:,kk)=Y;
+% for iter=1:n_iter
+%     disp(['** Iteration:' num2str(iter)])
+%     scramble=randperm(T);
+%     for kk=1:T
+%         if mod(kk,1000)==0
+%             disp(kk)
+%         end
+%         options_algorithm.gamma=1./Ysq;
+%         [M,W,Y]=H_AH_NN_PCAFast(M,W,Y,x(:,scramble(kk))',options_algorithm);
+%         Ysq = Ysq + Y.^2;
+%         Y_out(:,kk)=Y;
+%     end
+% end
+
+for iter=(n_init_PCA+1):(T)    
+    if mod(iter,100)==0
+        disp(iter)
     end
+    options_algorithm.gamma=1./Ysq;
+    [M,W,Y]=H_AH_NN_PCAFast(M,W,Y,x(:,iter)',options_algorithm);
+    Ysq = Ysq + Y.^2;      
 end
+disp(iter)
 
 
