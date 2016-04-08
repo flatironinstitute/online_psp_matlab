@@ -112,6 +112,7 @@ elseif isequal(method,'ORL') || isequal(method,'MNIST')
     if isequal(method,'ORL')        
         load('ORL_32x32');
         x1=fea';
+        x1=x1/max(abs(x1(:)));
         mu=mean(x1,2);
         x=bsxfun(@minus,x1,mu);  
         load('pca_ORL') % load data eignvalues and eigenvectors
@@ -136,6 +137,9 @@ elseif isequal(method,'brownian_motion')
     
     X = cumsum(x1,2);    
     
+%     mu=mean(X,2);
+%     X=bsxfun(@minus,X,mu);  
+%     
     if options.compute_eig
         
         if d^2<10e+8
