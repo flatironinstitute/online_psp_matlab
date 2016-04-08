@@ -1,6 +1,6 @@
 clear all
 
-fea=0; % if 1 uses orl otherwise MNIST
+fea=1; % if 1 uses orl otherwise MNIST
 if fea    
     load('ORL_32x32');
     x1=fea';
@@ -54,19 +54,18 @@ P_q=W1'*W1;
 figure
 n_iter=1;
 init_iter=q;
-% method=0; %IPCA
-method=0; %OSM
-fea=0;
-if fea
+is_method_OSM=1; %OSM or IPCA
+loop_data=1;
+init_pca=0;
+if init_pca
     %in this case initialize with PCA otherwise poor convergence
-
-    if method==1
+    if is_method_OSM==1
         [M,W,Ysq]=run_H_AH_PCA(x(:,1:init_iter+1),q,init_iter);
     else
         [values,vectors,iter_so_far]=run_incrPCA(x(:,1:init_iter+1),q,init_iter,[],[],[]);
     end
 else
-    if method==1
+    if is_method_OSM==1
         [M,W,Ysq]=run_H_AH_PCA(x(:,1:init_iter),q,0);
     else
         [values,vectors,iter_so_far]=run_incrPCA(x(:,1:init_iter),q,0,[],[],[]);
@@ -74,7 +73,7 @@ else
 end
 
 % Y_tot=(eye(q)+M)\W*x;
-if method == 1
+if is_method_OSM == 1
       F=(pinv(eye(q)+M)*W);
       P_u=orth(F')*orth(F')';  
      proj_err=compute_reconstruction_error(W1',orth(F'))
@@ -94,26 +93,24 @@ axis off
 axis image
 
 for kk=2:16
-    counter=counter+1;
-    
+    counter=counter+1;    
     subplot(6,5,counter)
-    fea=1;
-    if(fea)
+    if(loop_data)
         % in this case go through the dataset several times
-        if method==1
+        if is_method_OSM==1
              [M,W,Ysq]=run_H_AH_PCA(x(:,max(1,mod(index+1:index+kk^3,400))),q,0,W,M,Ysq);
         else
              [values,vectors,iter_final]=run_incrPCA(x(:,max(1,mod(index+1:index+kk^3,400))),q,0,values,vectors,index);
         end
     else
-        if method == 1 
+        if is_method_OSM == 1 
             [M,W,Ysq]=run_H_AH_PCA(x(:,index+1:index+kk^3),q,0,W,M,Ysq);
         else
             [values,vectors,iter_final]=run_incrPCA(x(:,index+1:index+kk^3),q,0,values,vectors,index);
         end
     end
     
-   if method == 1
+   if is_method_OSM == 1
         F=(pinv(eye(q)+M)*W);
       P_u=orth(F')*orth(F')';  
         proj_err=compute_reconstruction_error(W1',orth(F'))

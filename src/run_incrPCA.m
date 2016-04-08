@@ -41,7 +41,7 @@ end
 
 
 for iter=(n_init_PCA+1):(T)    
-    if mod(iter,100)==0
+    if mod(iter,1000)==0
         disp(iter_so_far+iter-1)
     end
     options_algorithm.n=max(1,iter_so_far+iter-1);
