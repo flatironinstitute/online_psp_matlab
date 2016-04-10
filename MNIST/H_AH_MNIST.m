@@ -1,10 +1,10 @@
 clear all
 close all
 q=64;
-fea=1; % if 1 uses orl otherwise MNIST
+fea=0; % if 1 uses orl otherwise MNIST
 if fea    
     load('ORL_32x32');
-    %load('YaleB_32x32');
+    load('YaleB_32x32');
 
 %     frame rate is 120 Hz but frames might not be equally spaced
 %     fea = hdf5read('agchr2_030915_01_040215_a_location_2_ds.hdf5','mov');
@@ -17,7 +17,8 @@ if fea
     %
     mu=mean(x1,2);    
     x=bsxfun(@minus,x1,mu);
-    %x=x/3/std(x(:));
+    x=x/3/std(x(:));
+    mu=mean(x,2);
 %     x=x/quantile(abs(x(:)),.95);
     %
 %     x=2*(x-min(x(:)))/(max(x(:))-min(x(:)))-1;   
@@ -31,7 +32,8 @@ else
 %     x1=x1/max(abs(x1(:)));
      mu=mean(x1,2);        
      x=bsxfun(@minus,x1,mu);
-        
+     x=x/3/std(x(:));
+     mu=mean(x,2);   
 end
 % eps_std=.1;
 % x=bsxfun(@times,x,1./(eps_std+std(x,[],2)));
@@ -75,7 +77,7 @@ rec_err_real=norm(x-P_q*x)/norm(x)
 figure
 n_iter=1;
 init_iter=q;
-is_method_OSM=0; %OSM or IPCA
+is_method_OSM=1; %OSM or IPCA
 loop_data=0;
 init_pca=0;
 tic

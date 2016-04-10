@@ -9,7 +9,7 @@ options_simulations.nstep_skip_EIGV_errors=128;
 options_simulations.initialize_PCA=0;
 options_simulations.orthonormalize_vectors=1;
 options_simulations.compute_error_batch=1;
-options_simulations.compute_error_real=0;
+options_simulations.compute_error_real=1;
 options_simulations.compute_error_online=0;
 options_simulations.normalize_input=1;
 
@@ -37,13 +37,13 @@ folder_exp=['n0_' num2str(options_simulations.n0) '_niter' num2str(options_simul
 mkdir(folder_exp)
 hold all
 legends={};
-options_generator.n=1024*12;
+options_generator.n=1024*2;
 cm=hot(220);
 counter=0;
 
-for q=16%=[2 4 16 64 128 256 512] 
+for q=64%=[2 4 16 64 128 256 512] 
     for d=256%[4 16 64 256 1024]% 
-        for rho=.9%.1:.2:.9
+        for rho=[.2]%.1:.2:.9
             options_generator.q=q;
             options_generator.d=d;
             
