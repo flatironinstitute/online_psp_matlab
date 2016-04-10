@@ -365,7 +365,7 @@ cm2=(gray(10));
 cm3=(autumn(10));
 
 stats_={'nanmedian','iqr'};
-stats_={@(X) quantile(X,.95),@(X) 0};
+%stats_={@(X) quantile(X,.5),@(X) 0};
 
 col_var=d_s;
 col_var2=q_s;
@@ -380,7 +380,7 @@ for cv=[16 64 256 1024]
             xvar=rho_s(idx);
             xax=unique(xvar);
             [me_h,ma_h]=grpstats(error(idx),xvar,stats_);
-            errorbar(xax+normrnd(0,.0001,size(xax)), me_h,ma_h,'MarkerFaceColor',[0 0 0],'color',[0 0 0]);
+            errorbar(xax+normrnd(0,.0001,size(xax)), me_h,ma_h ,'color',[0 0 0]);
             
             
             hold on
@@ -388,14 +388,14 @@ for cv=[16 64 256 1024]
             xvar=rho_s(idx);
             xax=unique(xvar);
             [me_i,ma_i]=grpstats(error(idx),xvar,stats_);
-            errorbar(xax+normrnd(0,.0001,size(xax)), me_i,ma_i,'MarkerFaceColor',[.7 .7 .7],'color',[.8 .8 .8]);
+            errorbar(xax+normrnd(0,.0001,size(xax)), me_i,ma_i,'color',[.7 .7 .7]);
             
              
             idx=find(col_var==cv & col_var2==cv2 & strcmp(methods_,'SGA'));
             xvar=rho_s(idx);
             xax=unique(xvar);
             [me_i,ma_i]=grpstats(error(idx),xvar,stats_);
-            errorbar(xax+normrnd(0,.0001,size(xax)), me_i,ma_i,'MarkerFaceColor',cm3(5,:),'color',cm3(5,:));
+            errorbar(xax+normrnd(0,.0001,size(xax)), me_i,ma_i,'color',cm3(5,:));
             set(gca,'xscale','log')
             set(gca,'yscale','log')
             legend('H_AH_NN_PCA','IPCA','SGA')
