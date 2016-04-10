@@ -11,10 +11,11 @@ err_s=[];
 errhalf_s=[];
 for f=1:numel(files)
    disp(files(f).name)
-   load(files(f).name,'d','q','errors_real')
+   load(files(f).name,'d','q','errors_real','errors_batch_pca')
    legends{f}=files(f).name;
-   plot((median(errors_real,2)),'d','Linewidth',2,'Color',cm(f+5,:))
-   err_s=[ err_s errors_real(end,:)'];
+   errors=errors_batch_pca;
+   plot((median(errors,2)),'d','Linewidth',2,'Color',cm(f+5,:))
+   err_s=[ err_s errors(end,:)'];
    d_s=[d_s d];
    q_s=[q_s q];
    legend(legends{:},'Interpreter', 'none')   
