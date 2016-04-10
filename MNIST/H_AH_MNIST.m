@@ -1,13 +1,28 @@
 clear all
-
+close all
+q=64;
 fea=1; % if 1 uses orl otherwise MNIST
 if fea    
     load('ORL_32x32');
+    %load('YaleB_32x32');
+
+%     frame rate is 120 Hz but frames might not be equally spaced
+%     fea = hdf5read('agchr2_030915_01_040215_a_location_2_ds.hdf5','mov');
+%     fea = ipermute(fea,[2 1 3]); % necessary since matlab and Python handle differntly the DHF5
+%     [d1,d2,T]=size(fea);
+%     fea=reshape(fea,[d1*d2,T])';
+
     x1=fea';
-    x1=x1/max(abs(x1(:)));
-    mu=mean(x1,2);
+   % x1=x1/max(abs(x1(:)));
+    %
+    mu=mean(x1,2);    
     x=bsxfun(@minus,x1,mu);
-%     x=2*(x-min(x(:)))/(max(x(:))-min(x(:)))-1;    
+    %x=x/3/std(x(:));
+%     x=x/quantile(abs(x(:)),.95);
+    %
+%     x=2*(x-min(x(:)))/(max(x(:))-min(x(:)))-1;   
+%     mu=mean(x,2);
+   % x=bsxfun(@minus,x,mu);
 else
     x1 = loadMNISTImages('train-images-idx3-ubyte');
     x1=x1(:,1:20000);
@@ -22,19 +37,24 @@ end
 % x=bsxfun(@times,x,1./(eps_std+std(x,[],2)));
 if 0
     sigma = cov(x');
-    k=64;
+    k=q;
     [U,S,V] = svd(sigma);
     epsilon=0;
 %     x = U * diag(1./sqrt(diag(S) + epsilon)) * U' * x;
     SS=diag(S);
     x = U * diag(1./[sqrt(SS(1:k) + epsilon)/SS(1); ones(960,1)]) * U' * x;
-
+    x=x/max(abs(x(:)));
+    mu=mean(x,2);
+    x=bsxfun(@minus,x,mu);
 end
-
+total_img=size(x,2);
+x=x(:,randperm(total_img));
 %% batch PCA
-q=64;
 [d,T]=size(x);
-d1=sqrt(d);
+if ~exist('d1')
+    d1=sqrt(d);
+    d2=sqrt(d);
+end
 
 % evl=eig(cov(x'));
 % evl(end:end-5)
@@ -49,18 +69,22 @@ evl=evl(1:q);
 toc
 W1=W1';
 P_q=W1'*W1;
+rec_err_real=norm(x-P_q*x)/norm(x)
 
 %% show the effects of decreasing projection error
 figure
 n_iter=1;
 init_iter=q;
-is_method_OSM=1; %OSM or IPCA
-loop_data=1;
+is_method_OSM=0; %OSM or IPCA
+loop_data=0;
 init_pca=0;
+tic
+
 if init_pca
     %in this case initialize with PCA otherwise poor convergence
     if is_method_OSM==1
         [M,W,Ysq]=run_H_AH_PCA(x(:,1:init_iter+1),q,init_iter);
+        
     else
         [values,vectors,iter_so_far]=run_incrPCA(x(:,1:init_iter+1),q,init_iter,[],[],[]);
     end
@@ -76,62 +100,73 @@ end
 if is_method_OSM == 1
       F=(pinv(eye(q)+M)*W);
       P_u=orth(F')*orth(F')';  
-     proj_err=compute_reconstruction_error(W1',orth(F'))
+      proj_err=compute_reconstruction_error(W1',orth(F'));
 else
-    proj_err=compute_reconstruction_error(W1',vectors)
-     P_u=vectors*vectors';
+      proj_err=compute_reconstruction_error(W1',vectors);
+      P_u=vectors*vectors';
 end
 
-subplot(6,5,1)
+subplot(4,4,1)
 % proj_err=norm(P_q-P_u,'fro')/norm(P_q,'fro');
 
-imagesc(reshape(mu+P_u*x(:,end),[d1 d1]))
+imagesc(reshape(mu+P_u*x(:,end),[d1 d2]))
+%hist(M(:),100)
 counter=1;
 index=init_iter;
-title(['Samples:' num2str(index) ', E=' num2str(proj_err)])
-axis off
-axis image
+title(['S:' num2str(index) ', E:' num2str(proj_err)])
+ axis off
+ axis image
 
-for kk=2:16
+for kk=2:15
     counter=counter+1;    
-    subplot(6,5,counter)
+    subplot(4,4,counter)
     if(loop_data)
         % in this case go through the dataset several times
         if is_method_OSM==1
-             [M,W,Ysq]=run_H_AH_PCA(x(:,max(1,mod(index+1:index+kk^3,400))),q,0,W,M,Ysq);
+             [M,W,Ysq]=run_H_AH_PCA(x(:,max(1,mod(index+1:index+kk^3,total_img))),q,0,W,M,Ysq);
         else
-             [values,vectors,iter_final]=run_incrPCA(x(:,max(1,mod(index+1:index+kk^3,400))),q,0,values,vectors,index);
+             [values,vectors,iter_final]=run_incrPCA(x(:,max(1,mod(index+1:index+kk^3,total_img))),q,0,values,vectors,index);
         end
+        upper=index+kk^3;
     else
+        if index>total_img
+            break
+        end
+        upper=min(total_img,index+kk^3);
         if is_method_OSM == 1 
-            [M,W,Ysq]=run_H_AH_PCA(x(:,index+1:index+kk^3),q,0,W,M,Ysq);
+            [M,W,Ysq]=run_H_AH_PCA(x(:,index+1:upper),q,0,W,M,Ysq);
         else
-            [values,vectors,iter_final]=run_incrPCA(x(:,index+1:index+kk^3),q,0,values,vectors,index);
+            [values,vectors,iter_final]=run_incrPCA(x(:,index+1:upper),q,0,values,vectors,index);
         end
     end
     
+   
    if is_method_OSM == 1
         F=(pinv(eye(q)+M)*W);
-      P_u=orth(F')*orth(F')';  
+        P_u=orth(F')*orth(F')'; 
+        rec_err=norm(x-P_u*x)/norm(x)          
         proj_err=compute_reconstruction_error(W1',orth(F'))
    else
-        proj_err=compute_reconstruction_error(W1',vectors)
-     P_u=vectors*vectors';
+        proj_err=compute_reconstruction_error(W1',vectors)        
+        P_u=vectors*vectors';
+        rec_err=norm(x-P_u*x)/norm(x);
     end
 
 %     proj_err=norm(P_q-P_u,'fro')/norm(P_q,'fro');
-    imagesc(reshape(mu+P_u*x(:,end),[d1 d1]))
-%    hist(M(:),100)
+    imagesc(reshape(mu+P_u*x(:,end),[d1 d2]))
+%    hist(M(:),100) 
     index=index+kk^3;
-    title(['Samples:' num2str(index) ', E=' num2str(proj_err)])
+    % round(1000*rec_err/rec_err_real)/100
+    title(['S:' num2str(round(upper/100)) ', E:' num2str(round(1000*proj_err)/1000) ', R:' num2str(round(1000*rec_err/rec_err_real)/1000)])
      axis off
      axis image
     drawnow
 end
-subplot(6,5,counter+1)
-imagesc(reshape(mu+P_q*x(:,end),[d1 d1]))
+subplot(4,4,counter+1)
+imagesc(reshape(mu+P_q*x(:,end),[d1 d2]))
 axis off
 axis image
+toc
 %% run simulation comparing algorithms
 
 
