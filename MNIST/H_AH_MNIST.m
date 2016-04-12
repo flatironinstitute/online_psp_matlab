@@ -1,24 +1,26 @@
 clear all
 % close all
-q=64;
-C1=.1/26;
+q=20;
 fea=1; % if 1 uses orl otherwise MNIST
 if fea    
     load('ORL_32x32');
     load('YaleB_32x32');
-
+    load('ATT_faces_112_92');
+    d1=112;
+    d2=92;
 %     frame rate is 120 Hz but frames might not be equally spaced
 %     fea = hdf5read('agchr2_030915_01_040215_a_location_2_ds.hdf5','mov');
 %     fea = ipermute(fea,[2 1 3]); % necessary since matlab and Python handle differntly the DHF5
-%     [d1,d2,T]=size(fea);
+ %    [d1,d2,T]=size(fea);
 %     fea=reshape(fea,[d1*d2,T])';
 
     x1=fea';
 %    x1=x1/max(abs(x1(:)));
     %
+%     x=x1;
     mu=mean(x1,2);    
     x=bsxfun(@minus,x1,mu);
-    x=x*C1;
+    
     %x=x/5/std(x(:));
 %     x=x/range(x(:));
     
@@ -82,8 +84,19 @@ evl=evl(1:q);
 toc
 W1=W1';
 P_q=W1'*W1;
-rec_err_real=norm(x-P_q*x)/norm(x)
-
+%%
+tic
+rec_err_real=norm(x-P_q*x)^2/norm(x)^2
+toc
+%%
+tic
+nsamp=200;
+errs=zeros(1,nsamp);
+for kk=1:nsamp
+    errs(kk)=norm(x(:,kk)-P_q*x(:,kk))^2/norm(mu+x(:,kk))^2;
+end
+rec_err_real=mean(errs)
+toc
 %% show the effects of decreasing projection error
 figure
 n_iter=1;
@@ -157,13 +170,14 @@ for kk=2:15
    if is_method_OSM == 1
         F=(pinv(eye(q)+M)*W);
         P_u=orth(F')*orth(F')'; 
-        rec_err=norm(x-P_u*x)/norm(x)          
+        rec_err=norm(x-P_u*x)^2/norm(x)^2          
         proj_err=compute_projection_error(W1',orth(F'))
    else
         proj_err=compute_projection_error(W1',vectors)        
         P_u=vectors*vectors';
-        rec_err=norm(x-P_u*x)/norm(x);
-    end
+        rec_err=norm(x-P_u*x)^2/norm(x)^2;
+   end
+    
 
 %     proj_err=norm(P_q-P_u,'fro')/norm(P_q,'fro');
     imagesc(reshape(mu+P_u*x(:,end),[d1 d2]))
@@ -180,8 +194,13 @@ imagesc(reshape(mu+P_q*x(:,end),[d1 d2]))
 axis off
 axis image
 toc
-%% run simulation comparing algorithms
-
+%% run simulation comparing algorithmsnsamp
+nsamp=100;
+errs=zeros(1,nsamp);
+for kk=1:nsamp
+    errs(kk)=norm(x(:,kk)-P_u*x(:,kk))^2/norm(mu+x(:,kk))^2;
+end
+rec_err_real=mean(errs)
 
 %%
 T1=kmeans(Y1_tot,10,'Replicates',10);
