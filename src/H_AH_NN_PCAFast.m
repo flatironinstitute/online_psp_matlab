@@ -1,4 +1,4 @@
-function [M,W,Y]=H_AH_NN_PCAFast(M,W,Y,x,options)
+function [M,W,Y,Ysq]=H_AH_NN_PCAFast(M,W,Y,Ysq,x,options)
 
     % function implementing Hebbian Anti-hebbian networks for subspace learning
     % [M,W,Y]=H_AH_NN_PCAFast(M,W,Y,x,options)
@@ -27,13 +27,14 @@ function [M,W,Y]=H_AH_NN_PCAFast(M,W,Y,x,options)
     
     
     q=options.q;      
-    gamma=options.gamma;    
     lambda=options.lambda;
     
     x=x';
     d=size(W,2);
     if isequal( options.update_method,'ls')
         % least square
+%          disp(cond(eye(q)+M,'fro'))
+%         pause
         Y=(eye(q)+M)\(W*x);
     else
         er = Inf;
@@ -59,9 +60,11 @@ function [M,W,Y]=H_AH_NN_PCAFast(M,W,Y,x,options)
         end
     end
     
+    Ysq = Ysq + Y.^2;
+    
     % Update weights
-    Y_tmp=(Y.*gamma);
-    Y_tmp_sq=Y.^2.*gamma;
+    Y_tmp=(Y./Ysq);
+    Y_tmp_sq=Y.^2./Ysq;
 
     % Update weights
     %W = W + Y_tmp*x' - W.*repmat(Y_tmp_sq,[1 d]);
