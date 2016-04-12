@@ -107,7 +107,7 @@ if isequal(method,'spiked_covariance') || isequal(method,'spiked_covariance_norm
     % vectors=vectors(:,end:-1:end-4);
     % [U,S,V] = svd(C,'econ');
     % disp('SVD')
-elseif isequal(method,'ORL') || isequal(method,'MNIST') || isequal(method,'YALE')
+elseif isequal(method,'ORL') || isequal(method,'MNIST') || isequal(method,'YALE') || isequal(method,'ATT')
     
     if isequal(method,'ORL')        
         load('ORL_32x32');
@@ -118,7 +118,10 @@ elseif isequal(method,'ORL') || isequal(method,'MNIST') || isequal(method,'YALE'
         %load('pca_MNIST') % load data eignvalues and eigenvectors
     elseif isequal(method,'YALE')
         load('YaleB_32x32.mat')
-        x1=fea';   
+        x1=fea'; 
+    elseif isequal(method,'ATT')
+        load('ATT_faces_112_92.mat')
+        x1=fea';     
     end
     mu=mean(x1,2);
     x=bsxfun(@minus,x1,mu); 
