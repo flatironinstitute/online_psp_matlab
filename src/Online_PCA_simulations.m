@@ -14,8 +14,10 @@ compute_error_batch=options_simulations.compute_error_batch;
 compute_error_real=options_simulations.compute_error_real;
 compute_error_online=options_simulations.compute_error_online;
 normalize_input=options_simulations.normalize_input;
+normalization_scale=options_simulations.normalization_scale;
 initialize_PCA=options_simulations.initialize_PCA;
 orthonormalize_vectors=options_simulations.orthonormalize_vectors;
+init_weight_mult=options_simulations.init_weight_mult;
 
 pca_algorithm=options_algorithm.pca_algorithm;
 set(0, 'DefaulttextInterpreter', 'none')
@@ -41,13 +43,18 @@ if d>q
                 options_generator.compute_eig=0;
             end
             [x,eig_vect_real,eig_val_real] = low_rank_rnd_vector(d,q,n,method_random,options_generator);
-            if normalize_input
-%                 mm=min(x(:));
-%                 mx=max(x(:));
-%                 x=2*(x-mm)/(mx-mm)-1;
+            mu=mean(x,2);
+            x=bsxfun(@minus,x,mu);
+            if normalize_input                
+               x=normalization_scale*x; 
+%                x=x/range(x(:));
+               
+%                  x=2*(x-min(x(:)))/(max(x(:))-min(x(:)))-1;   
+%                  mu=mean(x,2);
+%                  x=bsxfun(@minus,x,mu);
+%                  x=x*sqrt(q);
                % x=x/quantile(abs(x(:)),.95);
-                x=x/3/std(x(:));
-                
+%                 x=x/3/std(x(:));                
 %                 mu=mean(x,2);
 %                 x=bsxfun(@minus,x,mu);
 %                 x=x/max(abs(x(:)));
@@ -63,8 +70,8 @@ if d>q
             [eigvect_init,~,eigval_init]=pca(x(1:(n0+1),:),'NumComponents',q);            
         else
             n0=1;
-            eigval_init=normrnd(0,.1,q,1);
-            eigvect_init=normrnd(0,.1,d,q);
+            eigval_init=randn(q,1)/sqrt(d);
+            eigvect_init=randn(d,q)/sqrt(d);
         end
         
         values=eigval_init(1:q);
@@ -80,10 +87,10 @@ if d>q
             if initialize_PCA
                 Ysq=sum((W*x(1:n0,:)').^2,2);
             else
-                Ysq=10*ones(size(W,1),1);
+                Ysq=init_weight_mult*norm(x(1,:),'fro')^2/d*ones(size(W,1),1);
             end
         elseif isequal('GHA',pca_algorithm) || isequal('SGA',pca_algorithm)
-            learning_rate=1;
+            learning_rate=init_weight_mult;
         end
         
         if compute_error_batch || compute_error_real || compute_error_online
@@ -93,15 +100,15 @@ if d>q
         end
         
         if compute_error_online
-            errors_batch_pca(n0,ll)=compute_reconstruction_error(eig_vect_batch_pca,vectors_err);
+            errors_batch_pca(n0,ll)=compute_projection_error(eig_vect_batch_pca,vectors_err);
         end
         
         if compute_error_batch
-            errors_batch_pca(n0,ll)=compute_reconstruction_error(eig_vect_batch_pca,vectors_err);
+            errors_batch_pca(n0,ll)=compute_projection_error(eig_vect_batch_pca,vectors_err);
         end
 
         if compute_error_real
-            errors_real(n0,ll)=compute_reconstruction_error(eig_vect_real,vectors_err);
+            errors_real(n0,ll)=compute_projection_error(eig_vect_real,vectors_err);
 
 
         end
@@ -125,10 +132,8 @@ if d>q
                     case 'IPCA'
                         options_algorithm.n=idx-1;
                         [values, vectors] = incrPCA_fast(values, vectors,  x(i,:), options_algorithm);
-                    case 'H_AH_NN_PCA'
-                        options_algorithm.gamma=1./Ysq;
-                        [M,W,Y] = H_AH_NN_PCAFast(M,W,Y, x(i,:),options_algorithm);
-                        Ysq = Ysq + Y.^2;                        
+                    case 'H_AH_NN_PCA'                        
+                        [M,W,Y,Ysq] = H_AH_NN_PCAFast(M,W,Y,Ysq,x(i,:),options_algorithm);
                 end
                 
                 if (numel(find(isnan(vectors)))==0) && (compute_error_online + compute_error_batch + compute_error_real) && (mod(idx,nstep_skip_EIGV_errors) ==  0 || idx==n*outer_iter || i == round(n*outer_iter/2))
@@ -162,13 +167,13 @@ if d>q
                     end
                     
                     if compute_error_real
-                        errors_real(idx,ll)=compute_reconstruction_error(eig_vect_real,vectors_err);
+                        errors_real(idx,ll)=compute_projection_error(eig_vect_real,vectors_err);
                     end
                     if compute_error_batch
-                        errors_batch_pca(idx,ll)=compute_reconstruction_error(eig_vect_batch_pca,vectors_err);
+                        errors_batch_pca(idx,ll)=compute_projection_error(eig_vect_batch_pca,vectors_err);
                     end
                     if compute_error_online
-                        errors_online(idx,ll)=compute_reconstruction_error(eig_vect_online,vectors_err);
+                        errors_online(idx,ll)=compute_projection_error(eig_vect_online,vectors_err);
                     end
 
                 else
@@ -185,7 +190,7 @@ if d>q
     
     
     drawnow
-    ff_name=['n' num2str(n) '_d' num2str(d) '_q' num2str(q)]; 
+    ff_name=['n' num2str(n) '_d' num2str(d) '_q' num2str(q) '_iw' num2str(init_weight_mult) '_ns' num2str(normalization_scale)]; 
     if isfield(options_algorithm,'lambda')
            ff_name=[ff_name '_lambda' num2str(options_algorithm.lambda)];  
     end
