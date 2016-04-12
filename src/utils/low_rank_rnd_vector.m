@@ -107,25 +107,27 @@ if isequal(method,'spiked_covariance') || isequal(method,'spiked_covariance_norm
     % vectors=vectors(:,end:-1:end-4);
     % [U,S,V] = svd(C,'econ');
     % disp('SVD')
-elseif isequal(method,'ORL') || isequal(method,'MNIST')
+elseif isequal(method,'ORL') || isequal(method,'MNIST') || isequal(method,'YALE')
     
     if isequal(method,'ORL')        
         load('ORL_32x32');
-        x1=fea';
-        x1=x1/max(abs(x1(:)));
-        mu=mean(x1,2);
-        x=bsxfun(@minus,x1,mu);  
-        load('pca_ORL') % load data eignvalues and eigenvectors
-    else
+        x1=fea';                 
+        %load('pca_ORL') % load data eignvalues and eigenvectors
+    elseif isequal(method,'MNIST')  
         x1 = loadMNISTImages('train-images-idx3-ubyte');
-        load('pca_MNIST') % load data eignvalues and eigenvectors
-        mu=mean(x1,2);
-        x=bsxfun(@minus,x1,mu);          
+        %load('pca_MNIST') % load data eignvalues and eigenvectors
+    elseif isequal(method,'YALE')
+        load('YaleB_32x32.mat')
+        x1=fea';   
     end
+    mu=mean(x1,2);
+    x=bsxfun(@minus,x1,mu); 
     
 %     [eig_vect,~,eig_val]=pca(x','NumComponents',q);
-    eig_val=eig_val(1:q);
-    eig_vect=eig_vect(:,1:q);
+%     eig_val=eig_val(1:q);
+%     eig_vect=eig_vect(:,1:q);
+    eig_vect=[];
+    eig_val=[];  
     if n<=size(x,2)
         X=x(:,randperm(n))';
     else        
@@ -137,8 +139,8 @@ elseif isequal(method,'brownian_motion')
     
     X = cumsum(x1,2);    
     
-%     mu=mean(X,2);
-%     X=bsxfun(@minus,X,mu);  
+     mu=mean(X,2);
+     X=bsxfun(@minus,X,mu);  
 %     
     if options.compute_eig
         
