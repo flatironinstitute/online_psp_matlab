@@ -6,6 +6,9 @@ if ~exist('options_algorithm')
     options_algorithm.update_method='ls';
     options_algorithm.tol=1e-5;
 end
+
+
+
 options_algorithm.q=q;
 [d,T]=size(x);
 scramble=randperm(T);
@@ -15,7 +18,7 @@ if n_init_PCA>0
     if n_init_PCA<q
         error('n_init_PCA cannot be smaller than q')
     end
-    if exist('W') || exist('M') || exist('Ysq')
+    if ~isempty(W) || ~isempty(M) || ~isempty(Ysq)
         error('you cannot have n_init_PCA >0 and pass inputs W,M,Ysq')
     end
 
@@ -26,10 +29,11 @@ if n_init_PCA>0
     W = vectors';
     Ysq=sum((W*x(:,1:n0)).^2,2);
 else
-    if ~exist('W') || ~exist('M') || ~exist('Ysq')
-        W=rand(q,d)*.01;
-        M=rand(q,q)*.01;
+    if isempty(W) && isempty(M) && isempty(Ysq)
+        W=randn(q,d)/sqrt(d);
+        M=randn(q,q)*1e-1*0;
         M=M-diag(diag(M));
+%         Ysq=10*ones(size(W,1),1);
         Ysq=10*ones(size(W,1),1);
     end
 end
@@ -55,9 +59,9 @@ for iter=(n_init_PCA+1):(T)
     if mod(iter,100)==0
         disp(iter)
     end
-    options_algorithm.gamma=1./Ysq;
-    [M,W,Y]=H_AH_NN_PCAFast(M,W,Y,x(:,iter)',options_algorithm);
-    Ysq = Ysq + Y.^2;      
+%     options_algorithm.gamma=1./Ysq;
+    [M,W,Y,Ysq]=H_AH_NN_PCAFast(M,W,Y,Ysq,x(:,iter)',options_algorithm);
+         
 end
 disp(iter)
 

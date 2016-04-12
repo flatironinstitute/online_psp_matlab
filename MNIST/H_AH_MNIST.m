@@ -1,7 +1,8 @@
 clear all
-close all
+% close all
 q=64;
-fea=0; % if 1 uses orl otherwise MNIST
+C1=.1/26;
+fea=1; % if 1 uses orl otherwise MNIST
 if fea    
     load('ORL_32x32');
     load('YaleB_32x32');
@@ -13,17 +14,21 @@ if fea
 %     fea=reshape(fea,[d1*d2,T])';
 
     x1=fea';
-   % x1=x1/max(abs(x1(:)));
+%    x1=x1/max(abs(x1(:)));
     %
     mu=mean(x1,2);    
     x=bsxfun(@minus,x1,mu);
-    x=x/3/std(x(:));
-    mu=mean(x,2);
-%     x=x/quantile(abs(x(:)),.95);
-    %
-%     x=2*(x-min(x(:)))/(max(x(:))-min(x(:)))-1;   
+    x=x*C1;
+    %x=x/5/std(x(:));
+%     x=x/range(x(:));
+    
 %     mu=mean(x,2);
-   % x=bsxfun(@minus,x,mu);
+%     x=x/quantile(abs(x(:)),.95);
+    % OK!!
+%      x=2*(x-min(x(:)))/(max(x(:))-min(x(:)))-1;   
+%      x=x*sqrt(q);
+%      mu=mean(x,2);
+%      x=bsxfun(@minus,x,mu);
 else
     x1 = loadMNISTImages('train-images-idx3-ubyte');
     x1=x1(:,1:20000);
@@ -32,8 +37,14 @@ else
 %     x1=x1/max(abs(x1(:)));
      mu=mean(x1,2);        
      x=bsxfun(@minus,x1,mu);
-     x=x/3/std(x(:));
-     mu=mean(x,2);   
+     %x=x/3/std(x(:));
+     
+     %mu=mean(x,2);  
+      
+     x=2*(x-min(x(:)))/(max(x(:))-min(x(:)))-1;
+     x=x*sqrt(q);
+     mu=mean(x,2);
+     x=bsxfun(@minus,x,mu);
 end
 % eps_std=.1;
 % x=bsxfun(@times,x,1./(eps_std+std(x,[],2)));
@@ -85,14 +96,14 @@ tic
 if init_pca
     %in this case initialize with PCA otherwise poor convergence
     if is_method_OSM==1
-        [M,W,Ysq]=run_H_AH_PCA(x(:,1:init_iter+1),q,init_iter);
+        [M,W,Ysq]=run_H_AH_PCA(x(:,1:init_iter+1),q,init_iter,[],[],[]);
         
     else
         [values,vectors,iter_so_far]=run_incrPCA(x(:,1:init_iter+1),q,init_iter,[],[],[]);
     end
 else
     if is_method_OSM==1
-        [M,W,Ysq]=run_H_AH_PCA(x(:,1:init_iter),q,0);
+        [M,W,Ysq]=run_H_AH_PCA(x(:,1:init_iter),q,0,[],[],[]);
     else
         [values,vectors,iter_so_far]=run_incrPCA(x(:,1:init_iter),q,0,[],[],[]);
     end
@@ -102,9 +113,9 @@ end
 if is_method_OSM == 1
       F=(pinv(eye(q)+M)*W);
       P_u=orth(F')*orth(F')';  
-      proj_err=compute_reconstruction_error(W1',orth(F'));
+      proj_err=compute_projection_error(W1',orth(F'));
 else
-      proj_err=compute_reconstruction_error(W1',vectors);
+      proj_err=compute_projection_error(W1',vectors);
       P_u=vectors*vectors';
 end
 
@@ -147,9 +158,9 @@ for kk=2:15
         F=(pinv(eye(q)+M)*W);
         P_u=orth(F')*orth(F')'; 
         rec_err=norm(x-P_u*x)/norm(x)          
-        proj_err=compute_reconstruction_error(W1',orth(F'))
+        proj_err=compute_projection_error(W1',orth(F'))
    else
-        proj_err=compute_reconstruction_error(W1',vectors)        
+        proj_err=compute_projection_error(W1',vectors)        
         P_u=vectors*vectors';
         rec_err=norm(x-P_u*x)/norm(x);
     end

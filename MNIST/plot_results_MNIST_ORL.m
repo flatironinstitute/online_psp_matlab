@@ -19,6 +19,10 @@ for f=1:numel(files)
    d_s=[d_s d];
    q_s=[q_s q];
    legend(legends{:},'Interpreter', 'none')   
+   xlabel(files(f).name)
+   ylim([0 2])
+%    pause
+%    cla
 %     input('')
 
 end
@@ -51,8 +55,8 @@ cm3=flipud(autumn(20+numel(files)))
 % cm=colormap(hot(20))
 colq=[];
 for f=1:numel(files)    
-   load(files{f},'options_algorithm','options_generator','options_simulations','d','q','errors_real')
-   errors=errors_real;
+   load(files{f},'options_algorithm','options_generator','options_simulations','d','q','errors_real','errors_batch_pca')
+   errors=errors_batch_pca;
    if ~isfield(options_generator,'rho')
         warning('setting rho to 0 because not existing field!')
         options_generator.rho=0;
@@ -303,7 +307,7 @@ for f=1:numel(files)
        numIter=size(errors_batch_pca,2);
    end
 
-   idx_not_nan=find(~isnan(nanmedian(errors_real,2)));
+   idx_not_nan=find(~isnan(nanmedian(errors_batch_pca,2)));
    if ~load_times && ~isempty(idx_not_nan)       
        err_real=[err_real errors_real(idx_not_nan(end),:)];
        err_batch=[err_batch errors_batch_pca(idx_not_nan(end),:)];
@@ -317,6 +321,65 @@ for f=1:numel(files)
        newm{ll}=test_method;
    end
    methods_=[methods_ newm];
+end
+
+
+%% error plot
+figure('name','5_percentile')
+
+jj=0;
+error=err_batch;
+
+cm1=hot(8);
+cm2=(gray(10));
+cm3=(autumn(10));
+
+stats_={'nanmedian',@(X) mad(X,1)};
+% stats_={@(X) quantile(X,.5),@(X) nan};
+
+col_var=d_s;
+col_var2=rho_s;
+for cv=[400 784 1024]
+    for cv2=[0]
+        legend off
+        if ~isempty(find(col_var==cv & col_var2==cv2,1))
+            jj=jj+1;
+            subplot(1,1,jj)
+            
+            idx=find(col_var==cv & col_var2==cv2 & strcmp(methods_,'H_AH_NN_PCA'));
+            xvar=q_s(idx);
+            xax=unique(xvar);
+            [me_h,ma_h]=grpstats(error(idx),xvar,stats_);
+            errorbar(xax+normrnd(0,.01,size(xax)), me_h,ma_h,'o-','MarkerSize',7,'MarkerFaceColor',cm1(5,:),'color',cm1(5,:));
+            
+            
+            hold on
+            idx=find(col_var==cv & col_var2==cv2 & strcmp(methods_,'IPCA'));
+            xvar=q_s(idx);
+            xax=unique(xvar);
+            [me_i,ma_i]=grpstats(error(idx),xvar,stats_);
+            errorbar(xax+normrnd(0,.001,size(xax)), me_i,ma_i,'o-','MarkerSize',7,'MarkerFaceColor',cm2(5,:),'color',cm2(5,:));
+            
+             
+            idx=find(col_var==cv & col_var2==cv2 & strcmp(methods_,'SGA'));
+            xvar=q_s(idx);
+            xax=unique(xvar);
+            [me_i,ma_i]=grpstats(error(idx),xvar,stats_);
+            errorbar(xax+normrnd(0,.001,size(xax)), me_i,ma_i,'o-','MarkerSize',7,'MarkerFaceColor',cm3(5,:),'color',cm3(5,:));
+            set(gca,'xscale','log')
+            set(gca,'yscale','log')
+           
+%             ylim([.00001 2])
+            %axis tight
+            xlabel('q')
+            ylabel('Projection Error')
+            title(['d=' num2str(cv) ' q=' num2str(cv2)])
+            L = get(gca,'XLim');
+            set(gca,'XTick',xax)
+
+             legend('H_AH_NN_PCA','IPCA','SGA')
+        end
+    end
 end
 %% time plot
 figure
@@ -367,64 +430,6 @@ for cv=unique(col_var)
             %ylim([2*1e-4 2])
             axis square
             title(['d=' num2str(cv)])
-        end
-    end
-end
-
-%% error plot
-figure('name','5_percentile')
-
-jj=0;
-error=err_batch;
-
-cm1=hot(8);
-cm2=(gray(10));
-cm3=(autumn(10));
-
-% stats_={'nanmedian',@(X) mad(X,1)};
-stats_={@(X) quantile(X,.5),@(X) nan};
-
-col_var=d_s;
-col_var2=rho_s;
-for cv=[784 1024]
-    for cv2=[0]
-        legend off
-        if ~isempty(find(col_var==cv & col_var2==cv2,1))
-            jj=jj+1;
-            subplot(1,1,jj)
-            
-            idx=find(col_var==cv & col_var2==cv2 & strcmp(methods_,'H_AH_NN_PCA'));
-            xvar=q_s(idx);
-            xax=unique(xvar);
-            [me_h,ma_h]=grpstats(error(idx),xvar,stats_);
-            errorbar(xax+normrnd(0,.01,size(xax)), me_h,ma_h,'o-','MarkerSize',7,'MarkerFaceColor',cm1(5,:),'color',cm1(5,:));
-            
-            
-            hold on
-            idx=find(col_var==cv & col_var2==cv2 & strcmp(methods_,'IPCA'));
-            xvar=q_s(idx);
-            xax=unique(xvar);
-            [me_i,ma_i]=grpstats(error(idx),xvar,stats_);
-            errorbar(xax+normrnd(0,.001,size(xax)), me_i,ma_i,'o-','MarkerSize',7,'MarkerFaceColor',cm2(5,:),'color',cm2(5,:));
-            
-             
-            idx=find(col_var==cv & col_var2==cv2 & strcmp(methods_,'SGA'));
-            xvar=q_s(idx);
-            xax=unique(xvar);
-            [me_i,ma_i]=grpstats(error(idx),xvar,stats_);
-            errorbar(xax+normrnd(0,.001,size(xax)), me_i,ma_i,'o-','MarkerSize',7,'MarkerFaceColor',cm3(5,:),'color',cm3(5,:));
-            set(gca,'xscale','log')
-            set(gca,'yscale','log')
-           
-%             ylim([.00001 2])
-            %axis tight
-            xlabel('q')
-            ylabel('Projection Error')
-            title(['d=' num2str(cv) ' q=' num2str(cv2)])
-            L = get(gca,'XLim');
-            set(gca,'XTick',xax)
-
-             legend('H_AH_NN_PCA','IPCA','SGA')
         end
     end
 end
