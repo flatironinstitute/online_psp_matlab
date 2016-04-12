@@ -30,11 +30,12 @@ if n_init_PCA>0
     Ysq=sum((W*x(:,1:n0)).^2,2);
 else
     if isempty(W) && isempty(M) && isempty(Ysq)
-        W=randn(q,d)/sqrt(d);
-        M=randn(q,q)*1e-1*0;
+
+        W=randn(q,d)/sqrt(d); 
+        M=zeros(q,q);
         M=M-diag(diag(M));
-%         Ysq=10*ones(size(W,1),1);
-        Ysq=10*ones(size(W,1),1);
+        %Ysq=10*ones(size(W,1),1);
+        Ysq=2*pi*norm(x(:,1),'fro')^2/d*ones(size(W,1),1);
     end
 end
 
