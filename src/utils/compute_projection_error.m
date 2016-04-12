@@ -1,4 +1,4 @@
-function err=compute_reconstruction_error(V_exact,V_approx)
+function err=compute_projection_error(V_exact,V_approx)
 %{ 
 Compute quickly and efficiently the reconstruction errors given a subspace approximation. 
 
