@@ -24,6 +24,7 @@ set(0, 'DefaulttextInterpreter', 'none')
 if d>q
     hold all;
     errors_real=nan*zeros(n*outer_iter,niter);
+    errors_reconstr=nan*zeros(1,niter);
     errors_batch_pca=nan*zeros(n*outer_iter,niter);
     errors_online=nan*zeros(n*outer_iter,niter);
     errors_ortho=nan*zeros(n*outer_iter,niter);
@@ -69,9 +70,20 @@ if d>q
             n0=max(n0,q);
             [eigvect_init,~,eigval_init]=pca(x(1:(n0+1),:),'NumComponents',q);            
         else
-            n0=1;
-            eigval_init=randn(q,1)/sqrt(d);
-            eigvect_init=randn(d,q)/sqrt(d);
+            if isequal('H_AH_NN_PCA',pca_algorithm) || isequal('GHA',pca_algorithm) || isequal('SGA',pca_algorithm)
+                n0=1;
+                eigval_init=randn(q,1)/sqrt(q);
+                eigvect_init=randn(d,q)/sqrt(d);
+                eigvect_init(:,1)=x(1,:)/norm(x(1,:));
+%                 eigval_init(1)=max(x(1,:));
+            else
+                n0=1;
+                eigval_init=randn(q,1)/sqrt(q);
+                eigvect_init=randn(d,q)/sqrt(d);
+                eigvect_init(:,1)=x(1,:)/norm(x(1,:));
+                %eigval_init(1)=max(x(1,:));
+            end
+            
         end
         
         values=eigval_init(1:q);
@@ -93,6 +105,7 @@ if d>q
             learning_rate=init_weight_mult;
         end
         
+        
         if compute_error_batch || compute_error_real || compute_error_online
             if orthonormalize_vectors
                 vectors_err = orth(vectors);
@@ -100,7 +113,7 @@ if d>q
         end
         
         if compute_error_online
-            errors_batch_pca(n0,ll)=compute_projection_error(eig_vect_batch_pca,vectors_err);
+            errors_online(n0,ll)=compute_projection_error(eig_vect_batch_pca,vectors_err);
         end
         
         if compute_error_batch
@@ -109,8 +122,6 @@ if d>q
 
         if compute_error_real
             errors_real(n0,ll)=compute_projection_error(eig_vect_real,vectors_err);
-
-
         end
             
         
@@ -148,13 +159,15 @@ if d>q
                     
                     if isequal('H_AH_NN_PCA',pca_algorithm) 
                         F=(pinv(diag(ones(q,1))+M(1:q,1:q))*W(1:q,:))';
-                        errors_ortho(idx,ll) = (norm(F'*F-eye(q),'fro')/norm(F*F','fro'));                        
+%                         errors_ortho(idx,ll) = (norm(F'*F-eye(q),'fro')/norm(F*F','fro'));                        
                         Cy=Cy+Y*Y'; 
                         errors_decorr(idx,ll)=10*log10(norm((Cy-eye(q))/i,'fro')^2);
-                        vectors=F;
-                    end
-                    
-                    if isequal('SGA',pca_algorithm) || isequal('GHA',pca_algorithm)   ||  isequal('H_AH_NN_PCA',pca_algorithm) 
+                        if orthonormalize_vectors
+                            vectors_err = orth(F);
+                        else
+                            vectors_err = F;
+                        end                        
+                    elseif isequal('SGA',pca_algorithm) || isequal('GHA',pca_algorithm)  
                         
                         if orthonormalize_vectors
                             vectors_err = orth(vectors);
@@ -179,8 +192,11 @@ if d>q
                 else
                     times_(idx,ll)=toc;
                 end
+
             end
         end
+        errors_reconstr(ll)=norm(x'-vectors_err*vectors_err'*x','fro')^2/norm(x,'fro')^2;
+
     end
     hold on    
     colrand=rand(1,3);
@@ -200,7 +216,9 @@ if d>q
     ff_name=[ff_name '_algo_' pca_algorithm];
     
     save(fullfile(folder_exp,[ff_name '.mat']))
-    
+    disp(ff_name)
+    disp(['reconstr_error:' num2str(mean(errors_reconstr))])
+
 else
     errors_real=[];
     errors_batch_pca=[];
