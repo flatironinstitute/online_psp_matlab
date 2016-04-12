@@ -27,8 +27,10 @@ if n_init_PCA>0
 else
     if isempty(values) || isempty(vectors) 
         n0=1;
-        values=normrnd(0,.1,q,1);
-        vectors=normrnd(0,.1,d,q);
+        values=randn(q,1)/sqrt(d);
+        vectors=randn(d,q)/sqrt(d);
+        vectors(:,1)=x(:,1)/norm(x(:,1));
+        values(1)=max(x(:,1));
         iter_so_far=0;
         disp('Initializing eigenvalues and eigenvectors randomly')    
     end
