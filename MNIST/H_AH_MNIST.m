@@ -1,6 +1,6 @@
 clear all
 % close all
-q=20;
+q=128;
 fea=1; % if 1 uses orl otherwise MNIST
 if fea    
     load('ORL_32x32');
@@ -20,6 +20,7 @@ if fea
 %     x=x1;
     mu=mean(x1,2);    
     x=bsxfun(@minus,x1,mu);
+    
     
     %x=x/5/std(x(:));
 %     x=x/range(x(:));
@@ -64,6 +65,9 @@ if 0
 end
 total_img=size(x,2);
 x=x(:,randperm(total_img));
+img_test=x(:,end);
+x=x(:,1:end-1);
+total_img=total_img-1;
 %% batch PCA
 [d,T]=size(x);
 if ~exist('d1')
@@ -86,14 +90,16 @@ W1=W1';
 P_q=W1'*W1;
 %%
 tic
-rec_err_real=norm(x-P_q*x)^2/norm(x)^2
+rec_err_real=norm(x-P_q*x,'fro')^2/norm(x,'fro')^2
 toc
 %%
 tic
-nsamp=200;
+nsamp=50;
 errs=zeros(1,nsamp);
+idx=randsample(size(x,2),nsamp);
 for kk=1:nsamp
-    errs(kk)=norm(x(:,kk)-P_q*x(:,kk))^2/norm(mu+x(:,kk))^2;
+    errs(kk)=norm(x(:,idx(kk))-P_q*x(:,idx(kk)))^2/norm(x(:,idx(kk)))^2;
+%     errs(kk)=norm(x(:,kk)-P_q*x(:,kk))^2/norm(mu+x(:,kk))^2;
 end
 rec_err_real=mean(errs)
 toc
@@ -124,7 +130,8 @@ end
 
 % Y_tot=(eye(q)+M)\W*x;
 if is_method_OSM == 1
-      F=(pinv(eye(q)+M)*W);
+      F=(pinv(eye(q)+M)*W); 
+      
       P_u=orth(F')*orth(F')';  
       proj_err=compute_projection_error(W1',orth(F'));
 else
@@ -135,7 +142,7 @@ end
 subplot(4,4,1)
 % proj_err=norm(P_q-P_u,'fro')/norm(P_q,'fro');
 
-imagesc(reshape(mu+P_u*x(:,end),[d1 d2]))
+imagesc(reshape(mu+img_test,[d1 d2]))
 %hist(M(:),100)
 counter=1;
 index=init_iter;
@@ -170,27 +177,35 @@ for kk=2:15
    if is_method_OSM == 1
         F=(pinv(eye(q)+M)*W);
         P_u=orth(F')*orth(F')'; 
-        rec_err=norm(x-P_u*x)^2/norm(x)^2          
+        rec_err=norm(x-P_u*x,'fro')^2/norm(x,'fro')^2          
         proj_err=compute_projection_error(W1',orth(F'))
    else
         proj_err=compute_projection_error(W1',vectors)        
         P_u=vectors*vectors';
-        rec_err=norm(x-P_u*x)^2/norm(x)^2;
+        rec_err=norm(x-P_u*x,'fro')^2/norm(x,'fro')^2;
    end
-    
+   
+%     errs=zeros(1,nsamp);
+%     idx=randsample(size(x,2),nsamp);
+%     for kkk=1:nsamp
+%         errs(kkk)=norm(x(:,idx(kkk))-P_q*x(:,idx(kkk)))^2/norm(mu+x(:,idx(kkk)))^2;
+%     end
+%     rec_err=mean(errs);
 
 %     proj_err=norm(P_q-P_u,'fro')/norm(P_q,'fro');
-    imagesc(reshape(mu+P_u*x(:,end),[d1 d2]))
+    imagesc(reshape(mu+P_u*img_test,[d1 d2]))
 %    hist(M(:),100) 
     index=index+kk^3;
-    % round(1000*rec_err/rec_err_real)/100
-    title(['S:' num2str(round(upper/100)) ', E:' num2str(round(1000*proj_err)/1000) ', R:' num2str(round(1000*rec_err/rec_err_real)/1000)])
+    % round(1000*rec_err/rec_err_real)/1000
+    title(['S:' num2str(round(upper/100)) ', E:' num2str(round(1000*proj_err)/1000) ', R:' num2str(rec_err)])
      axis off
      axis image
+     colormap gray
     drawnow
 end
+
 subplot(4,4,counter+1)
-imagesc(reshape(mu+P_q*x(:,end),[d1 d2]))
+imagesc(reshape(mu+P_q*img_test,[d1 d2]))
 axis off
 axis image
 toc

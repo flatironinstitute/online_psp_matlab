@@ -4,7 +4,7 @@ options_simulations=struct;
 
 options_simulations.outer_iter=1;
 options_simulations.n0=0;
-options_simulations.niter=20;
+options_simulations.niter=5;
 options_simulations.nstep_skip_EIGV_errors=128;
 options_simulations.initialize_PCA=0;
 options_simulations.orthonormalize_vectors=1;

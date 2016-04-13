@@ -32,15 +32,17 @@ else
     if isempty(W) && isempty(M) && isempty(Ysq)
 
         W=randn(q,d)/sqrt(d); 
+        W(1,:)=x(:,1)/norm(x(:,1));
         M=zeros(q,q);
         M=M-diag(diag(M));
         %Ysq=10*ones(size(W,1),1);
         Ysq=2*pi*norm(x(:,1),'fro')^2/d*ones(size(W,1),1);
+%         Ysq=2*pi*norm(x(:,1),'fro')^2/sqrt(d)*ones(size(W,1),1);
+
     end
 end
 
 Y=rand(q,1)*0;
-Y_out=zeros(q,T);
 
 % for iter=1:n_iter
 %     disp(['** Iteration:' num2str(iter)])

@@ -53,7 +53,7 @@ for q=[2 4 16 64 128 256]
             
             disp(rho)
             options_generator.rho=rho;
-%             
+            
 %             options_algorithm=struct();
 %             options_algorithm.pca_algorithm='IPCA';
 %             options_algorithm.q=options_generator.q;
@@ -63,11 +63,12 @@ for q=[2 4 16 64 128 256]
 %                 axs=[];
 %                 counter=counter+1;
 %                 cols=cm(100,:);
-%                 axs(1)=plot(median(errors_real,2),'d','Linewidth',2,'color',cols);
+%                 axs(1)=plot(0,0);
+%                 %axs(1)=plot(median(errors_real,2),'d','Linewidth',2,'color',cols);
 %                 axs(2)=plot(median(errors_batch_pca,2),'+','Linewidth',2,'color',cols);
 %                 axs(3)=plot(median(errors_online,2),'*','Linewidth',2,'color',cols);
 %                 
-%                 legend(axs,{'real','batch pca','online'}, 'Interpreter', 'none')
+% %                 legend(axs,{'real','batch pca','online'}, 'Interpreter', 'none')
 %                 xlabel(fname)
 %                 ylabel('Projection error')
 %                 drawnow
@@ -80,18 +81,19 @@ for q=[2 4 16 64 128 256]
 %             options_algorithm.tol=1e-5;
 %             [errors_real,errors_batch_pca,errors_online,times_,fname]=Online_PCA_simulations(folder_exp,options_simulations,options_generator,options_algorithm);
 %             if ~isempty(errors_real)
-%                 axs=[];
+%                 axs(1)=plot(0,0);
 %                 counter=counter+1;
 %                 cols=cm(1,:);
-%                 axs(1)=plot(median(errors_real,2),'d','Linewidth',2,'color',cols);
+%                 %axs(1)=plot(median(errors_real,2),'d','Linewidth',2,'color',cols);
+%                 axs(1)=[];
 %                 axs(2)=plot(median(errors_batch_pca,2),'+','Linewidth',2,'color',cols);
 %                 axs(3)=plot(median(errors_online,2),'*','Linewidth',2,'color',cols);
-%                 legend(axs,{'real','batch pca','online'}, 'Interpreter', 'none')
+% %                 legend(axs,{'real','batch pca','online'}, 'Interpreter', 'none')
 %                 xlabel(fname)
 %                 ylabel('Projection error')
 %                 drawnow
 %             end
-%             pause
+%             pause(.5)
 %             cla
             best_rr=Inf;
             best_rate=[];
@@ -136,7 +138,7 @@ for q=[2 4 16 64 128 256]
                 ylabel('Projection error')
                 drawnow
             end
-            
+%             
         end
     end
 end
