@@ -4,7 +4,7 @@ options_simulations=struct;
 
 options_simulations.outer_iter=1;
 options_simulations.n0=0;
-options_simulations.niter=5;
+options_simulations.niter=40;
 options_simulations.nstep_skip_EIGV_errors=128;
 options_simulations.initialize_PCA=0;
 options_simulations.orthonormalize_vectors=1;
@@ -24,7 +24,7 @@ folder_exp=['MNIST_n0_' num2str(options_simulations.n0) '_niter' num2str(options
 mkdir(folder_exp)
 hold all
 legends={};
-options_generator.n=1024*1;
+options_generator.n=1024*4;
 options_generator.d=784;
 cm=hot(220);
 counter=0;
@@ -188,7 +188,7 @@ folder_exp=['YALE_n0_' num2str(options_simulations.n0) '_niter' num2str(options_
 mkdir(folder_exp)
 hold all
 legends={};
-options_generator.n=1000%2414;
+options_generator.n=2414;
 options_generator.d=1024;
 cm=hot(220);
 counter=0;

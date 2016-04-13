@@ -285,13 +285,14 @@ times_tot=[];
 err_real=[];
 err_batch=[];
 err_online=[];
+err_reconstr=[];
 d_s=[];
 q_s=[];
 rho_s=[];
 methods_={};
 for f=1:numel(files)
    disp(f)  
-   load(files{f},'options_algorithm','options_generator','options_simulations','d','q','times_','errors_real','errors_batch_pca','errors_online')
+   load(files{f},'options_algorithm','options_generator','options_simulations','d','q','times_','errors_real','errors_batch_pca','errors_online','errors_reconstr')
    if ~isfield(options_generator,'rho')
         warning('setting rho to 0 because not existing field!')
         options_generator.rho=0;
@@ -312,6 +313,7 @@ for f=1:numel(files)
        err_real=[err_real errors_real(idx_not_nan(end),:)];
        err_batch=[err_batch errors_batch_pca(idx_not_nan(end),:)];
        err_online=[err_online nanmean(errors_online(idx_not_nan,:),1)];  
+       err_reconstr=[err_reconstr errors_reconstr];
    end
    d_s=[d_s repmat(d,1,numIter)];
    q_s=[q_s repmat(q,1,numIter)];
@@ -324,23 +326,25 @@ for f=1:numel(files)
 end
 
 
-%% error plot
+% error plot
 figure('name','5_percentile')
 
 jj=0;
-error=err_batch;
+error=err_reconstr;
+% error=err_batch;
+
 
 cm1=hot(8);
 cm2=(gray(10));
 cm3=(autumn(10));
 
-stats_={'nanmedian',@(X) mad(X,1)};
+stats_={'nanmedian',@(X) iqr(X,1)};
 % stats_={@(X) quantile(X,.5),@(X) nan};
 
 col_var=d_s;
 col_var2=rho_s;
-for cv=[400 784 1024]
-    for cv2=[0]
+for cv=unique(col_var)%[400 784 1024]
+    for cv2=unique(col_var2)
         legend off
         if ~isempty(find(col_var==cv & col_var2==cv2,1))
             jj=jj+1;
@@ -366,21 +370,26 @@ for cv=[400 784 1024]
             xax=unique(xvar);
             [me_i,ma_i]=grpstats(error(idx),xvar,stats_);
             errorbar(xax+normrnd(0,.001,size(xax)), me_i,ma_i,'o-','MarkerSize',7,'MarkerFaceColor',cm3(5,:),'color',cm3(5,:));
-            set(gca,'xscale','log')
-            set(gca,'yscale','log')
+             
            
-%             ylim([.00001 2])
+%             xlim([3 300])
+%             ylim([.001 1])
+            axis tight
+%              set(gca,'xscale','log')
+            set(gca,'yscale','log')
             %axis tight
             xlabel('q')
             ylabel('Projection Error')
             title(['d=' num2str(cv) ' q=' num2str(cv2)])
-            L = get(gca,'XLim');
-            set(gca,'XTick',xax)
+%             L = get(gca,'XLim');
+%             set(gca,'XTick',xax)
 
-             legend('H_AH_NN_PCA','IPCA','SGA')
+            legend('OSM','IPCA')
         end
     end
 end
+set(gcf,'defaulttextinterpreter','none')
+saveas(gcf,'projErr.fig')
 %% time plot
 figure
 jj=0;

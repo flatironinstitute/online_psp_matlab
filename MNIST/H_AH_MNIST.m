@@ -1,13 +1,13 @@
 clear all
 % close all
-q=128;
-fea=1; % if 1 uses orl otherwise MNIST
+q=64;
+fea=0; % if 1 uses orl otherwise MNIST
 if fea    
     load('ORL_32x32');
-    load('YaleB_32x32');
-    load('ATT_faces_112_92');
-    d1=112;
-    d2=92;
+%     load('YaleB_32x32');
+%     load('ATT_faces_112_92');
+%     d1=112;
+%     d2=92;
 %     frame rate is 120 Hz but frames might not be equally spaced
 %     fea = hdf5read('agchr2_030915_01_040215_a_location_2_ds.hdf5','mov');
 %     fea = ipermute(fea,[2 1 3]); % necessary since matlab and Python handle differntly the DHF5
@@ -108,7 +108,7 @@ figure
 n_iter=1;
 init_iter=q;
 is_method_OSM=1; %OSM or IPCA
-loop_data=0;
+loop_data=1;
 init_pca=0;
 tic
 
@@ -197,7 +197,7 @@ for kk=2:15
 %    hist(M(:),100) 
     index=index+kk^3;
     % round(1000*rec_err/rec_err_real)/1000
-    title(['S:' num2str(round(upper/100)) ', E:' num2str(round(1000*proj_err)/1000) ', R:' num2str(rec_err)])
+    title(['S:' num2str(round(upper/10)) ', E:' num2str(round(1000*proj_err)/1000) ', R:' num2str(rec_err)])
      axis off
      axis image
      colormap gray
