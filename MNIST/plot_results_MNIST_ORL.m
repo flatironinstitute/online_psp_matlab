@@ -38,117 +38,6 @@ files = struct2cell(files);
 files = files(1,:);
 %%
 files=uipickfiles;
-%%
-figure
-clear all
-files=dir('*.mat')
-% dirFlags = [files.isdir];
-% files=files(dirFlags);
-files = struct2cell(files);
-files = files(1,:);
-hold all
-legends={};
-cm1=hot(20+numel(files));
-cm2=flipud(gray(20+numel(files)))
-cm3=flipud(autumn(20+numel(files)))
-
-% cm=colormap(hot(20))
-colq=[];
-for f=1:numel(files)    
-   load(files{f},'options_algorithm','options_generator','options_simulations','d','q','errors_real','errors_batch_pca')
-   errors=errors_batch_pca;
-   if ~isfield(options_generator,'rho')
-        warning('setting rho to 0 because not existing field!')
-        options_generator.rho=0;
-   end
-   legends{f}=files{f};
-   test_method=options_algorithm.pca_algorithm;
-   %legends{f}=['input dim=' num2str(d)];
-   legends{f}=[test_method ' rho = ' num2str(options_generator.rho) ' d = ' num2str(d) ' n0 = ' num2str(options_simulations.n0)];
-
-   if isequal(test_method,'IPCA')
-        symbol='d';
-        colr=cm1(20+f,:);
-        colr=cm1(20,:);
-        shift=0;
-    elseif isequal(test_method,'H_AH_NN_PCA')
-        symbol='o';
-        colr=cm2(f,:);
-        colr=cm2(20,:);
-        shift=0;
-    else
-        symbol='s';
-        colr=cm3(f,:);
-        shift=0;
-   end
-   vr= options_generator.q;
-%    colq(f)=errorbar(vr+normrnd(0,vr/50,size(vr)),nanmedian(errors(end,:)),quantile(errors(end,:),.25),quantile(errors(end,:),.75),'ko','MarkerFaceColor',colr,'MarkerSize',10) ;
-   colq(f)=scatter(vr+normrnd(0,vr/50,size(vr)),nanmedian(errors(end,:)),'k','MarkerFaceColor',colr,'Marker',symbol) ;
-   set(gca,'yscale','log')
-   set(gca,'xscale','log')
-%    legend(legends{:})   
-% input('')
-end
-[vals,idx]=unique(legends)
-legend(colq(idx),legends{idx}, 'Interpreter', 'none')
-xlabel(['output dim'], 'Interpreter', 'none')
-ylabel('Projection Error')
-saveas(gcf,'ProjErrors.jpg')
-saveas(gcf,'ProjErrors.fig')
-%%
-clear all
-files=dir('*.mat')
-% dirFlags = [files.isdir];
-% files=files(dirFlags);
-files = struct2cell(files);
-files = files(1,:);
-cm1=hot(20+numel(files));
-cm2=flipud(gray(numel(files)))
-cm3=flipud(autumn(numel(files)))
-figure
-hold all
-legends={};
-% cm=colormap(hot(20))
-colq=[];
-for f=1:numel(files)
-   disp(f)
-   load(files{f},'options_algorithm','options_generator','options_simulations','d','q','times_')
-    if ~isfield(options_generator,'rho')
-        warning('setting rho to 0 because not existing field!')
-        options_generator.rho=0;
-   end
-    legends{f}=files{f};
-   times_=diff(times_);
-   test_method=options_algorithm.pca_algorithm;
-   %legends{f}=['input dim=' num2str(d)];
-   legends{f}=[test_method ' rho = ' num2str(options_generator.rho) ' d = ' num2str(d) ' n0 = ' num2str(options_simulations.n0)];
-
-   if isequal(test_method,'IPCA')
-        symbol='d';
-        colr=cm1(20+f,:);
-        shift=0;
-    elseif isequal(test_method,'H_AH_NN_PCA')
-        symbol='o';
-        colr=cm2(f,:);
-        shift=0;
-    else
-        symbol='s';
-        colr=cm3(f,:);
-        shift=0;
-   end
-   vr=q;
-   colq(f)=errorbar(vr+normrnd(0,vr/50,size(vr)),nanmedian(times_(:)*1000),quantile(times_(:)*1000,.25),quantile(times_(:)*1000,.75),'k','MarkerFaceColor',colr,'MarkerSize',10,'Marker',symbol) ;
-   set(gca,'yscale','log')
-   set(gca,'xscale','log')
-%    legend(legends{:})   
-% input('')
-end
-[vals,idx]=unique(legends);
-legend(colq(idx),legends{idx}, 'Interpreter', 'none')
-xlabel('output dim' , 'Interpreter', 'none')
-ylabel('Time per iteration (ms)')
-saveas(gcf,'TimeIter.jpg')
-saveas(gcf,'TimeIter.fig')
 %% ********************************** PLOT FOR GAPS *****************************************
 clear all
 files_to_analize = uipickfiles()
@@ -165,116 +54,85 @@ files_to_analize=dir('*.mat')
 % files=files(dirFlags);
 files_to_analize = struct2cell(files_to_analize);
 files_to_analize = files_to_analize(1,:);
-%%
-figure
-hold on
-legends={};
-cm1=(hot(8));
-cm2=(gray(10));
-cm3=(autumn(10));
+%% PLOT TOP EIGENVALUES
+files_to_analize = uipickfiles();
+% d1=112;
+% d2=92;
+d1=28;
+d2=28;
+% d1=32;
+% d2=32;
+num_comps=5;
+for mm=1
+    load(files_to_analize{1})
+    F=(pinv(diag(ones(q,1))+M(1:q,1:q))*W(1:q,:))';
+    F = orth(F);
+    pwr=sum((F'*x').^2,2);
+    [vls,idx]=sort(pwr,'descend');
+    plot(pwr(idx))
 
-colq=[];
-for ff=1:numel(files_to_analize)
-    disp(files_to_analize{ff})   
-    load(files_to_analize{ff},'options_algorithm','options_generator','options_simulations','d','q','errors_online','errors_real','errors_batch_pca','error_orth')
-    test_method=options_algorithm.pca_algorithm;
-    if ~isfield(options_generator,'rho')
-        warning('setting rho to 0 because not existing field!')
-        options_generator.rho=0;
-   end
-    drawnow 
+    for cc=1:num_comps
+       subplot(3,5,cc)
+       imagesc(reshape(eig_vect_batch_pca(:,cc),[d1,d2]))
+       axis image
+       colormap gray
+        axis off
 
-    errors=errors_batch_pca;
-    legends{ff}=[test_method ' rho = ' num2str(options_generator.rho) ' d = ' num2str(d) ' n0 = ' num2str(options_simulations.n0)];
-    if isequal(test_method,'IPCA')
-        symbol='d';
-        colr=cm2(5,:)
-        shift=0;
-    elseif isequal(test_method,'H_AH_NN_PCA')        
-        symbol='o';
-        colr=cm1(5,:)
-        shift=1;
-    elseif isequal(test_method,'SGA')
-        symbol='s';
-        colr=cm3(5,:)
-        shift=0;
+       title(['PCA comp:' num2str(cc)])
     end
-    errline=nanmedian(errors');    
-    idx_not_nan=find(~isnan(errline));
     
-    colq(ff)=errorbar(idx_not_nan+shift,nanmedian(errors(idx_not_nan,:)'),mad(errors(idx_not_nan,:)',1),['-' symbol],'color',colr,'MarkerFaceColor',colr,'MarkerSize',10) ;
-%     colq(ff)=plot(idx_not_nan+shift,nanmedian(errors(idx_not_nan,:)'),['-' symbol],'color',colr,'MarkerFaceColor',colr,'MarkerSize',10) ;
+    for cc=1:num_comps
+       subplot(3,5,cc+2*num_comps)
+       imagesc(reshape(F(:,idx(cc)),[d1,d2]))
+       axis image
+       axis off
+       colormap gray
+       title(['OSM comp:' num2str(cc)])
+    end
+    load(files_to_analize{2})
+     
+    for cc=1:num_comps
+       subplot(3,5,cc+1*num_comps)
+       imagesc(reshape(vectors(:,cc),[d1,d2]))
+       axis image
+       colormap gray
+              axis off
 
+       title(['IPCA comp:' num2str(cc)])
+    end
 end
-legend(legends,'Interpreter', 'none')
-xlabel('Samples', 'Interpreter', 'none')
-ylabel('Projection error')
-set(gca,'yscale','log')
-set(gca,'xscale','log')
-
-
-%%
-clear all
-files=dir('*.mat')
-% dirFlags = [files.isdir];
-% files=files(dirFlags);
-files = struct2cell(files);
-files = files(1,:);
-nfiles=numel(files)
-cm1=hot(20+nfiles);
-cm2=flipud(gray(nfiles));
-cm3=flipud(autumn(nfiles*2));
-figure
+saveas(gcf,'first5comp.fig')
+% exportfig(gcf,'YALEFirst5.eps','color','cmyk','fontsize',1,'width',10,'height',10)
+%% PLOT ERROR IN FUNCTION OF TRIALS
+files_to_analize = uipickfiles();
 hold all
-legends={};
-colq=[];
-for f=1:numel(files)
-   disp(f)  
-   load(files{f},'options_algorithm','options_generator','options_simulations','d','q','times_','errors_online')
-   if ~isfield(options_generator,'rho')
-        warning('setting rho to 0 because not existing field!')
-        options_generator.rho=0;
-   end
-    legends{f}=files{f};
-   times_=diff(times_);
-   test_method=options_algorithm.pca_algorithm;
-   errors=errors_online;
-   if isequal(test_method,'IPCA')
-        symbol='d';
-        colr=cm1(nfiles/2,:);
-        shift=1;
-   elseif  isequal(test_method,'H_AH_NN_PCA')
-        symbol='o';
-        colr=cm2(nfiles/2,:);
-        shift=1;
-   else
-        symbol='s';
-        colr=cm3(f*2,:);
-        shift=0;
-   end    
-   
-   xvarname='rho';
-   xvar=options_generator.rho;
-   xvarname='q';
-   xvar=d;
-   %colq(f)=errorbar(xvar,nanmedian(times_(:)*1000),mad(times_(:)*1000,.25),'ko','MarkerFaceColor',colr,'MarkerSize',10) ;
-   times_iter=times_(:)*1000;
-%    colq(f)=errorbar(xvar+ normrnd(0,xvar/20),nanmedian(times_iter),quantile(times_iter,.25),quantile(times_iter,.75),'ko','MarkerFaceColor',colr,'MarkerSize',10) ;
-   colq(f)=errorbar(xvar+ normrnd(0,xvar/20),nanmedian(times_iter),mad(times_iter,1),'ko','MarkerFaceColor',colr,'MarkerSize',10) ;
+load(files_to_analize{1})
+err2=nanmedian(errors_batch_pca');
+load(files_to_analize{2})
+err1=nanmedian(errors_batch_pca');
+idxs=find(~isnan(err2-err1));
+plot(idxs,err2(idxs)-err1(idxs),'-d')
 
-%    legend(legends{:})   
-% input('')
-end
-[vals,idx]=unique(legends)
-legend(colq(idx),legends{idx}, 'Interpreter', 'none')
-xlabel(xvarname, 'Interpreter', 'none')
-ylabel('Time per iteration (ms)')
-set(gca,'yscale','log')
-set(gca,'xscale','log')
-saveas(gcf,'TimeIter.jpg')
-saveas(gcf,'TimeIter.fig')
-
+ylabel('\Delta Projection error')
+xlabel('Samples')
+legend('MNIST','YALE','ATT','ORL','SPIKED-COV')
 %%
+files_to_analize = uipickfiles();
+hold all
+load(files_to_analize{1})
+err2=nanmedian(errors_batch_pca');
+load(files_to_analize{2})
+err1=nanmedian(errors_batch_pca');
+idxs=find(~isnan(err2-err1));
+
+
+plot(idxs,err2(idxs),'--*k')
+plot(idxs,err1(idxs),'--*r')
+
+ylabel('Projection error')
+xlabel('Samples')
+legend('OSM YALE','IPCA YALE','OSM ATT','IPCA ATT')
+%% PLOT SUMMARY OF FILES
 clear all
 files=dir('*.mat');
 files = struct2cell(files);
@@ -329,16 +187,23 @@ end
 % error plot
 figure('name','5_percentile')
 
+is_proj_error=1;
+
+if is_proj_error
+    error=err_batch;
+else
+    error=err_reconstr;
+end
+
 jj=0;
-error=err_reconstr;
-% error=err_batch;
+
 
 
 cm1=hot(8);
 cm2=(gray(10));
 cm3=(autumn(10));
 
-stats_={'nanmedian',@(X) iqr(X,1)};
+stats_={'nanmean','sem'};
 % stats_={@(X) quantile(X,.5),@(X) nan};
 
 col_var=d_s;
@@ -379,17 +244,29 @@ for cv=unique(col_var)%[400 784 1024]
             set(gca,'yscale','log')
             %axis tight
             xlabel('q')
+            if is_proj_error
             ylabel('Projection Error')
-            title(['d=' num2str(cv) ' q=' num2str(cv2)])
+            else
+             ylabel('Reconstruction Error')   
+            end
+            %title(['d=' num2str(cv) ' q=' num2str(cv2)])
 %             L = get(gca,'XLim');
 %             set(gca,'XTick',xax)
 
             legend('OSM','IPCA')
+            box off
         end
     end
 end
 set(gcf,'defaulttextinterpreter','none')
-saveas(gcf,'projErr.fig')
+if is_proj_error
+    saveas(gcf,'projErr.fig')
+    exportfig(gcf,'projErr.eps','color','cmyk','fontsize',2,'width',7,'height',12)
+else
+    saveas(gcf,'reconstrErr.fig')
+    exportfig(gcf,'reconstrErr.eps','color','cmyk','fontsize',2,'width',7,'height',12)
+
+end
 %% time plot
 figure
 jj=0;
