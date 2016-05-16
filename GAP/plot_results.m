@@ -258,7 +258,7 @@ set(gca,'xscale','log')
 saveas(gcf,'TimeIter.jpg')
 saveas(gcf,'TimeIter.fig')
 
-%%
+%% ** LOAD **
 clear all
 files=dir('*.mat');
 files = struct2cell(files);
@@ -269,13 +269,22 @@ times_tot=[];
 err_real=[];
 err_batch=[];
 err_online=[];
+err_reconstr=[];
+err_of_pca=[];
+err_reconstr_pca=[];
+err_sim_pca=[];
+err_sim=[];
+
 d_s=[];
 q_s=[];
 rho_s=[];
 methods_={};
 for f=1:numel(files)
    disp(f)  
-   load(files{f},'options_algorithm','options_generator','options_simulations','d','q','times_','errors_real','errors_batch_pca','errors_online')
+   load(files{f},'options_algorithm','options_generator','options_simulations','d','q','times_',...
+                            'errors_similarity','errors_real','errors_batch_pca','errors_online','errors_reconstr',...
+                            'errors_reconstr_pca','errors_of_pca'...
+                            ,'errors_similarity_pca')
    test_method=options_algorithm.pca_algorithm;  
    if load_times
        times_=diff(times_);
@@ -291,7 +300,16 @@ for f=1:numel(files)
    if ~load_times && ~isempty(idx_not_nan)       
        err_real=[err_real errors_real(idx_not_nan(end),:)];
        err_batch=[err_batch errors_batch_pca(idx_not_nan(end),:)];
-       err_online=[err_online nanmean(errors_online(idx_not_nan,:),1)];  
+       err_online=[err_online nanmean(errors_online(idx_not_nan,:),1)]; 
+       try
+           err_reconstr=[err_reconstr errors_reconstr(idx_not_nan(end),:)]; 
+           err_sim=[err_sim errors_similarity(idx_not_nan(end),:)]; 
+           err_of_pca=[err_of_pca errors_of_pca(idx_not_nan(end),:)];
+           err_sim_pca=[err_sim_pca errors_similarity_pca(idx_not_nan(end),:)];
+           err_reconstr_pca=[err_reconstr_pca errors_reconstr_pca(idx_not_nan(end),:)];
+       catch
+           disp('did not load sim and reconstr error')
+       end
    end
    d_s=[d_s repmat(d,1,numIter)];
    q_s=[q_s repmat(q,1,numIter)];
@@ -303,32 +321,45 @@ for f=1:numel(files)
    methods_=[methods_ newm];
 end
 %% error plot
-figure('name','50_percentile')
 
 jj=0;
-error=err_batch;
+is_projection_error=1;
+if is_projection_error
+    %figure('name','Projection Error')    
+     error=err_batch;  
+%      error=err_real;
+%      error=err_of_pca;
+else
+%     figure('name','Reconstruction Error')
+%     error=err_reconstr_pca;
+%     error=err_reconstr;
+%     error=err_sim;
+%     error=err_sim_pca;
+    
+end
+
 
 cm1=hot(8);
 cm2=(gray(10));
-cm3=(autumn(10));
+cm3=colormap(lines);
 
-stats_={'nanmean','std'};
+stats_={'nanmean','iqr'};
 %stats_={@(X) quantile(X,.5),@(X) 0};
 
 col_var=d_s;
 col_var2=q_s;
-for cv=[16 64 256 1024]
-    for cv2=[4 16 64 128 256]
+for cv=unique(col_var)
+    for cv2=unique(col_var2)
         legend off
         if ~isempty(find(col_var==cv & col_var2==cv2,1))
             jj=jj+1;
-            subplot(4,4,jj)
+            subplot(5,4,jj)
             
             idx=find(col_var==cv & col_var2==cv2 & strcmp(methods_,'H_AH_NN_PCA'));
             xvar=rho_s(idx);
             xax=unique(xvar);
             [me_h,ma_h]=grpstats(error(idx),xvar,stats_);
-            errorbar(xax+normrnd(0,.0001,size(xax)), me_h,ma_h ,'color',[0 0 0]);
+            errorbar(xax, me_h,ma_h ,'.-','color',[0 0 0],'linewidth',1.5);
             
             
             hold on
@@ -336,25 +367,69 @@ for cv=[16 64 256 1024]
             xvar=rho_s(idx);
             xax=unique(xvar);
             [me_i,ma_i]=grpstats(error(idx),xvar,stats_);
-            errorbar(xax+normrnd(0,.0001,size(xax)), me_i,ma_i,'color',[.7 .7 .7]);
+            errorbar(xax, me_i,ma_i,'--','color',[1 0 0]);
+            if is_projection_error
+           %     text(max(xax),max(me_i),['q = ' num2str(cv2)],'fontsize',10)
+            else
+            %    text(min(xax),min(me_i),['q = ' num2str(cv2)],'fontsize',10)
+            end
             
              
             idx=find(col_var==cv & col_var2==cv2 & strcmp(methods_,'SGA'));
             xvar=rho_s(idx);
             xax=unique(xvar);
             [me_i,ma_i]=grpstats(error(idx),xvar,stats_);
-            errorbar(xax+normrnd(0,.0001,size(xax)), me_i,ma_i,'color',cm3(5,:));
-            set(gca,'xscale','log')
+            errorbar(xax, me_i,ma_i,'--','color',[0 .6 0]);
+%             set(gca,'xscale','log')
             set(gca,'yscale','log')
-            legend('H_AH_NN_PCA','IPCA','SGA')
-%             ylim([.00001 2])
+            
+            
+            idx=find(col_var==cv & col_var2==cv2 & strcmp(methods_,'SEQ_SIM_PCA'));
+            xvar=rho_s(idx);
+            xax=unique(xvar);
+            [me_i,ma_i]=grpstats(error(idx),xvar,stats_);
+            errorbar(xax, me_i,ma_i,'--','color',[0 0 0.6]);
+%             set(gca,'xscale','log')
+            set(gca,'yscale','log')
+            
+            
+            if is_projection_error
+                legend('OSM','IPCA','SGA','SEQ_OSM','location','NorthWest')
+            else
+                legend('OSM','IPCA','SGA','SEQ_OSM','location','SouthEast')
+            end
+            
+            
+            
+%             ylim([.001 1.1])
+%             xlim([0 1.1])
             axis tight
             xlabel('rho')
-            ylabel('Projection Error')
+            if is_projection_error
+                ylabel('Projection Error')
+            else
+                ylabel('Reconstruction Error')
+            end
             title(['d=' num2str(cv) ' q=' num2str(cv2)])
         end
     end
 end
+%
+% get handle to current axes
+a = gca;
+% set box property to off and remove background color
+box off
+
+% if is_projection_error
+%     fname=['Proj_error_' num2str(cv) '.fig']
+%     fname1=['Proj_error_' num2str(cv) '.eps']
+%    
+% else
+%     fname=['Reconstr_error_' num2str(cv) '.fig']   
+%     fname1=['Reconstr_error_' num2str(cv) '.eps']   
+% end
+% saveas(gcf,fname) 
+% exportfig(gcf,fname1,'color','cmyk','fontsize',2,'width',7,'height',12)
 %% time plot
 figure
 jj=0;
