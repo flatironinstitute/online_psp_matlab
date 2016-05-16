@@ -1,78 +1,16 @@
 clear all
 addpath('../MNIST')
 % close all
-q=64;
-fea=0; % if 1 uses orl otherwise MNIST
-if fea
-    load('../MNIST/ORL_32x32');
-    d1=sqrt(size(fea,2));
-    d2=d1;
-    %     load('YaleB_32x32');
-    %     load('ATT_faces_112_92');
-    %     d1=112;
-    %     d2=92;
-    %     frame rate is 120 Hz but frames might not be equally spaced
-    %     fea = hdf5read('agchr2_030915_01_040215_a_location_2_ds.hdf5','mov');
-    %     fea = ipermute(fea,[2 1 3]); % necessary since matlab and Python handle differntly the DHF5
-    %    [d1,d2,T]=size(fea);
-    %     fea=reshape(fea,[d1*d2,T])';
-    
-    x1=fea';
-    %    x1=x1/max(abs(x1(:)));
-    %
-    %     x=x1;
-    mu=mean(x1,2);
-    x=bsxfun(@minus,x1,mu);
-    
-    
-    %x=x/5/std(x(:));
-    %     x=x/range(x(:));
-    
-    %     mu=mean(x,2);
-    %     x=x/quantile(abs(x(:)),.95);
-    % OK!!
-    %      x=2*(x-min(x(:)))/(max(x(:))-min(x(:)))-1;
-    %      x=x*sqrt(q);
-    %      mu=mean(x,2);
-    %      x=bsxfun(@minus,x,mu);
-else
-    x1 = loadMNISTImages('../MNIST/train-images-idx3-ubyte');
-    x1=x1(:,1:100);
-    d1=28;
-    d2=28;
-    % x=x1;
-    % mu=0;
-    %     x1=x1/max(abs(x1(:)));
-    mu=mean(x1,2);
-    x=bsxfun(@minus,x1,mu);
-    %x=x/3/std(x(:));
-    
-    %mu=mean(x,2);
-    
-    x=2*(x-min(x(:)))/(max(x(:))-min(x(:)))-1;
-    x=x*sqrt(q);
-    mu=mean(x,2);
-    x=bsxfun(@minus,x,mu);
-end
-% eps_std=.1;
-% x=bsxfun(@times,x,1./(eps_std+std(x,[],2)));
-if 0
-    sigma = cov(x');
-    k=q;
-    [U,S,V] = svd(sigma);
-    epsilon=0;
-    %     x = U * diag(1./sqrt(diag(S) + epsilon)) * U' * x;
-    SS=diag(S);
-    x = U * diag(1./[sqrt(SS(1:k) + epsilon)/SS(1); ones(960,1)]) * U' * x;
-    x=x/max(abs(x(:)));
-    mu=mean(x,2);
-    x=bsxfun(@minus,x,mu);
-end
+
+x1 = loadMNISTImages('../MNIST/train-images-idx3-ubyte');
+x1=x1(:,1:end);
+d1=28;
+d2=28;
+x=x1;
+%     mu=mean(x1,2);
+%     x=bsxfun(@minus,x1,mu);
+
 total_img=size(x,2);
-x=x(:,randperm(total_img));
-img_test=x(:,end);
-x=x(:,1:end-1);
-total_img=total_img-1;
 
 %%
 X=x;
