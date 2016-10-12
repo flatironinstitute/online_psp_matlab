@@ -171,7 +171,7 @@ for f=1:numel(files)
        err_real=[err_real errors_real(idx_not_nan(end),:)];
        err_batch=[err_batch errors_batch_pca(idx_not_nan(end),:)];
        err_online=[err_online nanmean(errors_online(idx_not_nan,:),1)];  
-       err_reconstr=[err_reconstr errors_reconstr];
+       err_reconstr=[err_reconstr errors_reconstr(idx_not_nan(end),:)];
    end
    d_s=[d_s repmat(d,1,numIter)];
    q_s=[q_s repmat(q,1,numIter)];
@@ -184,10 +184,10 @@ for f=1:numel(files)
 end
 
 
-% error plot
+%% error plot
 figure('name','5_percentile')
 
-is_proj_error=1;
+is_proj_error=0;
 
 if is_proj_error
     error=err_batch;
@@ -202,6 +202,7 @@ jj=0;
 cm1=hot(8);
 cm2=(gray(10));
 cm3=(autumn(10));
+cm4=(lines(10));
 
 stats_={'nanmean','sem'};
 % stats_={@(X) quantile(X,.5),@(X) nan};
@@ -229,6 +230,11 @@ for cv=unique(col_var)%[400 784 1024]
             [me_i,ma_i]=grpstats(error(idx),xvar,stats_);
             errorbar(xax+normrnd(0,.001,size(xax)), me_i,ma_i,'o-','MarkerSize',7,'MarkerFaceColor',cm2(5,:),'color',cm2(5,:));
             
+             idx=find(col_var==cv & col_var2==cv2 & strcmp(methods_,'SEQ_SIM_PCA'));
+            xvar=q_s(idx);
+            xax=unique(xvar);
+            [me_i,ma_i]=grpstats(error(idx),xvar,stats_);
+            errorbar(xax+normrnd(0,.001,size(xax)), me_i,ma_i,'o-','MarkerSize',7,'MarkerFaceColor',cm3(10,:),'color',cm3(10,:));
              
             idx=find(col_var==cv & col_var2==cv2 & strcmp(methods_,'SGA'));
             xvar=q_s(idx);
@@ -236,7 +242,13 @@ for cv=unique(col_var)%[400 784 1024]
             [me_i,ma_i]=grpstats(error(idx),xvar,stats_);
             errorbar(xax+normrnd(0,.001,size(xax)), me_i,ma_i,'o-','MarkerSize',7,'MarkerFaceColor',cm3(5,:),'color',cm3(5,:));
              
-           
+            idx=find(col_var==cv & col_var2==cv2 & strcmp(methods_,'CCIPCA'));
+            xvar=q_s(idx);
+            xax=unique(xvar);
+            [me_i,ma_i]=grpstats(error(idx),xvar,stats_);
+            errorbar(xax+normrnd(0,.001,size(xax)), me_i,ma_i,'o-','MarkerSize',7,'MarkerFaceColor',cm4(5,:),'color',cm4(5,:));
+            
+            
 %             xlim([3 300])
 %             ylim([.001 1])
             axis tight
