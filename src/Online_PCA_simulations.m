@@ -90,7 +90,7 @@ if d>q
             n0=max(n0,q);
             [eigvect_init,~,eigval_init]=pca(x(1:(n0+1),:),'NumComponents',q);            
         else
-            if isequal('SEQ_SIM_PCA',pca_algorithm) || isequal('H_AH_NN_PCA',pca_algorithm) || isequal('GHA',pca_algorithm) || isequal('SGA',pca_algorithm)
+            if isequal('CCIPCA',pca_algorithm) || isequal('SEQ_SIM_PCA',pca_algorithm) || isequal('H_AH_NN_PCA',pca_algorithm) || isequal('GHA',pca_algorithm) || isequal('SGA',pca_algorithm)
                 n0=1;
                 eigval_init=randn(q,1)/sqrt(q);
                 eigvect_init=randn(d,q)/sqrt(d);
@@ -188,6 +188,9 @@ if d>q
                      case 'SEQ_SIM_PCA'                        
                         [M,W,Y,Ysq] = SEQ_ACT_SM_PCAFast(M,W,Y,Ysq,x(i,:),options_algorithm);
                         Y_iter(:,i)=Y;   
+                    case 'CCIPCA'
+                        options_algorithm.n=idx-1;
+                        [values, vectors] = CCIPCA(values, vectors,  x(i,:), options_algorithm);
                 end
                 
                 if (numel(find(isnan(vectors)))==0) && (compute_error_online + compute_error_batch + compute_error_real) && (mod(idx,nstep_skip_EIGV_errors) ==  0 || idx==n*outer_iter || i == round(n*outer_iter/2))
@@ -200,9 +203,9 @@ if d>q
                     
 
                     
-                    if isequal('H_AH_NN_PCA',pca_algorithm)  ||    isequal('SEQ_SIM_PCA',pca_algorithm)   
+                    if isequal('H_AH_NN_PCA',pca_algorithm)  ||    isequal('SEQ_SIM_PCA',pca_algorithm)    
                         
-                        F=(pinv(diag(ones(q,1))+M(1:q,1:q))*W(1:q,:))';
+                        F=(pinv(diag(ones(q,1))+M(1:q,1:q)*W(1:q,:))';
 %                         errors_ortho(idx,ll) = (norm(F'*F-eye(q),'fro')/norm(F*F','fro'));                        
                         Cy=Cy+Y*Y'; 
                         errors_decorr(idx,ll)=10*log10(norm((Cy-eye(q))/i,'fro')^2);
@@ -220,7 +223,7 @@ if d>q
 % %                              M=M-diag(diag(M));
 %                         end
                         
-                    elseif isequal('SGA',pca_algorithm) || isequal('GHA',pca_algorithm)  
+                    elseif isequal('SGA',pca_algorithm) || isequal('GHA',pca_algorithm)  ||    isequal('CCIPCA',pca_algorithm) 
                         
                         if orthonormalize_vectors
                             vectors_err = orth(vectors);
