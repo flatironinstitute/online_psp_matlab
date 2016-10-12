@@ -86,6 +86,33 @@ for q=[2 4 16 64 128 256]
                 drawnow
             end
             
+            
+             options_algorithm=struct();
+            options_algorithm.pca_algorithm='CCIPCA';
+            options_algorithm.q=options_generator.q;
+            options_algorithm.tol=1e-7;
+            cm=hot(220);
+            
+            hold on
+            [errors_real,errors_batch_pca,errors_online,errors_reconstr,errors_similarity,times_,fname]=Online_PCA_simulations(folder_exp,options_simulations,options_generator,options_algorithm);
+            cla
+            if ~isempty(errors_real)
+                axs=[];
+                counter=counter+1;
+                cols=cm(100,:);
+                axs(1)=plot(0,0);
+                axs(1)=plot(median(errors_real,2),'d','Linewidth',2,'color','m');
+                axs(2)=plot(median(errors_batch_pca,2),'+','Linewidth',2,'color','m');
+%                 axs(3)=plot(median(errors_online,2),'*','Linewidth',2,'color',cols);
+                axs(3)=plot(median(errors_similarity,2),'+','Linewidth',2,'color','r');
+                axs(4)=plot(median(errors_reconstr,2),'*','Linewidth',2,'color','k');
+%                 legend(axs,{'real','batch pca','online'}, 'Interpreter', 'none')
+                xlabel(fname)
+                ylabel('Projection error')
+                drawnow
+            end
+            
+            
             options_algorithm=struct();
             options_algorithm.pca_algorithm='H_AH_NN_PCA';
             options_algorithm.q=options_generator.q;
@@ -110,29 +137,29 @@ for q=[2 4 16 64 128 256]
                 drawnow
             end
             
-            options_algorithm=struct();
-            options_algorithm.pca_algorithm='SEQ_SIM_PCA';
-            options_algorithm.q=options_generator.q;
-            options_algorithm.update_method='ls';
-            options_algorithm.tol=1e-5;
-            cm=autumn(220);
-            
-            [errors_real,errors_batch_pca,errors_online,errors_reconstr,errors_similarity,times_,fname]=Online_PCA_simulations(folder_exp,options_simulations,options_generator,options_algorithm);
-            if ~isempty(errors_real)
-                axs=[];
-                counter=counter+1;
-                cols=cm(100,:);
-                axs(1)=plot(0,0);
-                axs(1)=plot(median(errors_real,2),'d','Linewidth',2,'color','m');
-                axs(2)=plot(median(errors_batch_pca,2),'+','Linewidth',2,'color','m');
-                %                 axs(3)=plot(median(errors_online,2),'*','Linewidth',2,'color',cols);
-                axs(3)=plot(median(errors_similarity,2),'+','Linewidth',2,'color','r');
-                axs(4)=plot(median(errors_reconstr,2),'*','Linewidth',2,'color','k');
-                %                 legend(axs,{'real','batch pca','online'}, 'Interpreter', 'none')
-                xlabel(fname)
-                ylabel('Projection error')
-                drawnow
-            end
+%             options_algorithm=struct();
+%             options_algorithm.pca_algorithm='SEQ_SIM_PCA';
+%             options_algorithm.q=options_generator.q;
+%             options_algorithm.update_method='ls';
+%             options_algorithm.tol=1e-5;
+%             cm=autumn(220);
+%             
+%             [errors_real,errors_batch_pca,errors_online,errors_reconstr,errors_similarity,times_,fname]=Online_PCA_simulations(folder_exp,options_simulations,options_generator,options_algorithm);
+%             if ~isempty(errors_real)
+%                 axs=[];
+%                 counter=counter+1;
+%                 cols=cm(100,:);
+%                 axs(1)=plot(0,0);
+%                 axs(1)=plot(median(errors_real,2),'d','Linewidth',2,'color','m');
+%                 axs(2)=plot(median(errors_batch_pca,2),'+','Linewidth',2,'color','m');
+%                 %                 axs(3)=plot(median(errors_online,2),'*','Linewidth',2,'color',cols);
+%                 axs(3)=plot(median(errors_similarity,2),'+','Linewidth',2,'color','r');
+%                 axs(4)=plot(median(errors_reconstr,2),'*','Linewidth',2,'color','k');
+%                 %                 legend(axs,{'real','batch pca','online'}, 'Interpreter', 'none')
+%                 xlabel(fname)
+%                 ylabel('Projection error')
+%                 drawnow
+%             end
 %             
 %             pause
 %             cla

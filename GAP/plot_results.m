@@ -18,8 +18,8 @@ for f=1:numel(files)
    d_s=[d_s d];
    q_s=[q_s q];
    legend(legends{:},'Interpreter', 'none')   
-%    input('')
-%    cla
+    input('')
+
 end
 legend(legends, 'Interpreter', 'none')
 xlabel('Samples')
@@ -296,7 +296,7 @@ for f=1:numel(files)
        numIter=size(errors_batch_pca,2);
    end
 
-   idx_not_nan=find(~isnan(nanmedian(errors_real,2)));
+   idx_not_nan=find(~isnan(nanmedian(errors_real,2)) | ~isnan(nanmedian(errors_batch_pca,2)));
    if ~load_times && ~isempty(idx_not_nan)       
        err_real=[err_real errors_real(idx_not_nan(end),:)];
        err_batch=[err_batch errors_batch_pca(idx_not_nan(end),:)];
@@ -327,12 +327,12 @@ is_projection_error=1;
 if is_projection_error
     %figure('name','Projection Error')    
      error=err_batch;  
-%      error=err_real;
-%      error=err_of_pca;
+%       error=err_real;
+%     error=err_of_pca;
 else
 %     figure('name','Reconstruction Error')
 %     error=err_reconstr_pca;
-%     error=err_reconstr;
+    error=err_reconstr;
 %     error=err_sim;
 %     error=err_sim_pca;
     
@@ -392,11 +392,18 @@ for cv=unique(col_var)
 %             set(gca,'xscale','log')
             set(gca,'yscale','log')
             
+            idx=find(col_var==cv & col_var2==cv2 & strcmp(methods_,'CCIPCA'));
+            xvar=rho_s(idx);
+            xax=unique(xvar);
+            [me_i,ma_i]=grpstats(error(idx),xvar,stats_);
+            errorbar(xax, me_i,ma_i,'--','color',[0 0.6 0.6]);
+%             set(gca,'xscale','log')
+            set(gca,'yscale','log')
             
             if is_projection_error
-                legend('OSM','IPCA','SGA','SEQ_OSM','location','NorthWest')
+                legend('OSM','IPCA','SGA','SEQ_OSM','CCIPCA','location','NorthWest')
             else
-                legend('OSM','IPCA','SGA','SEQ_OSM','location','SouthEast')
+                legend('OSM','IPCA','SGA','SEQ_OSM','CCIPCA','location','SouthEast')
             end
             
             
@@ -461,6 +468,15 @@ for cv=unique(col_var)
             [me_i,ma_i,ql_i,qh_i]=grpstats(ttime(idx),xvar,stats_);
             errorbar(xax+normrnd(0,.01,size(xax)), me_i,ma_i,'o-','MarkerSize',6,'MarkerFaceColor',cm2(5,:),'color',cm2(5,:));
             
+            hold on
+            idx=find(col_var==cv & strcmp(methods_,'CCIPCA'));
+            xvar=q_s(idx);
+            xax=unique(xvar);
+            [me_i,ma_i,ql_i,qh_i]=grpstats(ttime(idx),xvar,stats_);
+            errorbar(xax+normrnd(0,.01,size(xax)), me_i,ma_i,'o-','MarkerSize',6,'MarkerFaceColor',cm2(2,:),'color',cm2(2,:));
+            
+            
+            
             idx=find(col_var==cv & strcmp(methods_,'SGA'));
             xvar=q_s(idx);
             xax=unique(xvar);
@@ -469,7 +485,7 @@ for cv=unique(col_var)
             
             
             
-            legend('H_AH_NN_PCA','IPCA','SGA')
+            legend('H_AH_NN_PCA','IPCA','CCIPCA','SGA')
             set(gca,'yscale','log')
             set(gca,'xscale','log')
             xlabel('q')
