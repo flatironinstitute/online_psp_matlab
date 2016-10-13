@@ -1,4 +1,4 @@
-%%Use ONLINE PCA with Hebbian Anti-Hebbian Learning rule (CEnzig et. al,2015 Neural Computation)
+%%Use ONLINE PCA with Hebbian Anti-Hebbian Learning rule (Pehlevan et. al,2015 Neural Computation)
 clear all
 
 tic

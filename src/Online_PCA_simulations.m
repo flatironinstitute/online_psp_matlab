@@ -1,4 +1,48 @@
 function [errors_real,errors_batch_pca,errors_online,errors_reconstr,errors_similarity,times_,ff_name]=Online_PCA_simulations(folder_exp,options_simulations,options_generator,options_algorithm)
+% main file for simulations. 
+% Parameters
+%===========
+%     folder_exp: where to save the experiment
+%     options_simulations: structure specifying the options for simulation. 
+%             outer_iter: number of iterations over all data
+%             n0. if initialized with PCA, how many samples to use to initialize
+%             niter: number of time to rerun the simulation to achieve more statistical power
+%             nstep_skip_EIGV_errors; number of steps between successive estimation of the subspace estimation error (since it is computationally intensive)
+%             compute_error_batch; whether or not to compute the subspace estimation error WRT batch PCA or not 
+%             compute_error_real; whether or not to compute the subspace estimation error wrt to real eigenv or not 
+%             compute_error_online; whether or not to compute the subspace estimation error wrt PCA (estimated with only the samples seen so far) at each iteration or not 
+%             compute_error_similarity; whether or not to compute the similarity matching error or not 
+%             compute_error_reconstruction; whether or not to compute the reconstruction error wrt real eigenv or not 
+%             compute_error_reconstruction_pca; whether or not to compute the reconstruction error wrt PCA or not 
+%             compute_proj_errors_of_pca; compute also the projection error of PCA
+%             compute_errors_similarity_pca; compute the similarity matching error of PCA
+%             normalize_input; whether you want to normalize the input samples with some factor normalization_scale
+%             normalization_scale; see above
+%             initialize_PCA; whether to use batch PCA to initialize the algorithm
+%             orthonormalize_vectors; whether to orthonormalize before measuring projection or reconstruction errors
+%             init_weight_mult; this is used to initialized the learning rate. We empirically found that 2*pi seems to work well in most cases
+%             perc_samp_extra_test;
+%     DEPRECATED orthonormalize_weights; 
+%     options_generator: structure containing options related to the generation of dataset to test
+%     algorithm
+%             method; wihch method to use to generate. see low_rank_rnd_vector function
+%             q: number of principal components that are above noise level (if random generation methods) 
+%             d: dimensionality of the input
+%             n: number of samples to generate
+%             options_algorithm: structure containing options related to the algorithm
+%             to be run on the data. These are specific to what algorithm is
+%             used:'SGA','GHA', 'IPCA', H_AH_NN_PCA','SEQ_SIM_PCA','CCIPCA'
+%             The algorithm is selected via the field options_algorithm.pca_algorithm
+%
+% Returns:
+% =======
+%     errors_real: proj error wrt real eigenvector
+%     errors_batch_pca: proj error wrt batch pca eigenvector
+%     errors_online: proj error wrt bach pca with data streamed so far
+%     errors_reconstr: reconstruction error
+%     errors_similarity: similarity errror
+%     times_: times per iteration
+%     ff_name: name of the mat files where results are stored 
 %%
 method_random=options_generator.method;
 
@@ -24,7 +68,7 @@ normalize_input=options_simulations.normalize_input;
 normalization_scale=options_simulations.normalization_scale;
 initialize_PCA=options_simulations.initialize_PCA;
 orthonormalize_vectors=options_simulations.orthonormalize_vectors;
-orthonormalize_weights=options_simulations.orthonormalize_weights;
+% orthonormalize_weights=options_simulations.orthonormalize_weights;
 init_weight_mult=options_simulations.init_weight_mult;
 perc_samp_extra_test=options_simulations.perc_samp_extra_test;
 n_extra=round(perc_samp_extra_test*n);

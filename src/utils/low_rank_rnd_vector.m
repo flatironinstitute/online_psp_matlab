@@ -21,8 +21,7 @@ function [X,eig_vect,eig_val] = low_rank_rnd_vector(d,q,n,method,options)
 %                     options.slope: slope with which the eignvalue grows departing from rho+gap
 %          if 'spiked_covariance_normalized': 
 %                     options.rho: size of non principal eigenvalues (i.e. noise) 
-%                     options.lambda_q: size of smallest principal eigenvalues   
-% 
+%                     options.lambda_q: size of smallest principal eigenvalues  
 % 
 % Returns
 % --------

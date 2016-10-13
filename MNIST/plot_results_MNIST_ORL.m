@@ -29,110 +29,8 @@ end
 legend(legends, 'Interpreter', 'none')
 xlabel('Samples')
 ylabel('Eigenspace Estimation Error pca vs batch')
-%%
-clear all
-files=dir('*.mat');
-% dirFlags = [files.isdir];
-% files=files(dirFlags);
-files = struct2cell(files);
-files = files(1,:);
-%%
-files=uipickfiles;
-%% ********************************** PLOT FOR GAPS *****************************************
-clear all
-files_to_analize = uipickfiles()
-%%
-files_to_analize=dir('*')
-files_to_analize(1:2)=[];
-dirFlags = [files_to_analize.isdir];
-files_to_analize=files_to_analize(dirFlags);
-files_to_analize = struct2cell(files_to_analize);
-files_to_analize = files_to_analize(1,:);
-%%
-files_to_analize=dir('*.mat')
-% dirFlags = [files.isdir];
-% files=files(dirFlags);
-files_to_analize = struct2cell(files_to_analize);
-files_to_analize = files_to_analize(1,:);
-%% PLOT TOP EIGENVALUES
-files_to_analize = uipickfiles();
-% d1=112;
-% d2=92;
-d1=28;
-d2=28;
-% d1=32;
-% d2=32;
-num_comps=5;
-for mm=1
-    load(files_to_analize{1})
-    F=(pinv(diag(ones(q,1))+M(1:q,1:q))*W(1:q,:))';
-    F = orth(F);
-    pwr=sum((F'*x').^2,2);
-    [vls,idx]=sort(pwr,'descend');
-    plot(pwr(idx))
 
-    for cc=1:num_comps
-       subplot(3,5,cc)
-       imagesc(reshape(eig_vect_batch_pca(:,cc),[d1,d2]))
-       axis image
-       colormap gray
-        axis off
-
-       title(['PCA comp:' num2str(cc)])
-    end
-    
-    for cc=1:num_comps
-       subplot(3,5,cc+2*num_comps)
-       imagesc(reshape(F(:,idx(cc)),[d1,d2]))
-       axis image
-       axis off
-       colormap gray
-       title(['OSM comp:' num2str(cc)])
-    end
-    load(files_to_analize{2})
-     
-    for cc=1:num_comps
-       subplot(3,5,cc+1*num_comps)
-       imagesc(reshape(vectors(:,cc),[d1,d2]))
-       axis image
-       colormap gray
-              axis off
-
-       title(['IPCA comp:' num2str(cc)])
-    end
-end
-saveas(gcf,'first5comp.fig')
-% exportfig(gcf,'YALEFirst5.eps','color','cmyk','fontsize',1,'width',10,'height',10)
-%% PLOT ERROR IN FUNCTION OF TRIALS
-files_to_analize = uipickfiles();
-hold all
-load(files_to_analize{1})
-err2=nanmedian(errors_batch_pca');
-load(files_to_analize{2})
-err1=nanmedian(errors_batch_pca');
-idxs=find(~isnan(err2-err1));
-plot(idxs,err2(idxs)-err1(idxs),'-d')
-
-ylabel('\Delta Projection error')
-xlabel('Samples')
-legend('MNIST','YALE','ATT','ORL','SPIKED-COV')
-%%
-files_to_analize = uipickfiles();
-hold all
-load(files_to_analize{1})
-err2=nanmedian(errors_batch_pca');
-load(files_to_analize{2})
-err1=nanmedian(errors_batch_pca');
-idxs=find(~isnan(err2-err1));
-
-
-plot(idxs,err2(idxs),'--*k')
-plot(idxs,err1(idxs),'--*r')
-
-ylabel('Projection error')
-xlabel('Samples')
-legend('OSM YALE','IPCA YALE','OSM ATT','IPCA ATT')
-%% PLOT SUMMARY OF FILES
+%% LOAD MANAGEABE DATA STRCUTRE FROM FILES
 clear all
 files=dir('*.mat');
 files = struct2cell(files);
@@ -187,7 +85,7 @@ end
 %% error plot
 figure('name','5_percentile')
 
-is_proj_error=0;
+is_proj_error=1;
 
 if is_proj_error
     error=err_batch;
@@ -331,6 +229,110 @@ for cv=unique(col_var)
         end
     end
 end
+%%
+clear all
+files=dir('*.mat');
+% dirFlags = [files.isdir];
+% files=files(dirFlags);
+files = struct2cell(files);
+files = files(1,:);
+%%
+files=uipickfiles;
+%% ********************************** PLOT FOR GAPS *****************************************
+clear all
+files_to_analize = uipickfiles()
+%%
+files_to_analize=dir('*')
+files_to_analize(1:2)=[];
+dirFlags = [files_to_analize.isdir];
+files_to_analize=files_to_analize(dirFlags);
+files_to_analize = struct2cell(files_to_analize);
+files_to_analize = files_to_analize(1,:);
+%%
+files_to_analize=dir('*.mat')
+% dirFlags = [files.isdir];
+% files=files(dirFlags);
+files_to_analize = struct2cell(files_to_analize);
+files_to_analize = files_to_analize(1,:);
+%% PLOT TOP EIGENVALUES
+files_to_analize = uipickfiles();
+% d1=112;
+% d2=92;
+d1=28;
+d2=28;
+% d1=32;
+% d2=32;
+num_comps=5;
+for mm=1
+    load(files_to_analize{1})
+    F=(pinv(diag(ones(q,1))+M(1:q,1:q))*W(1:q,:))';
+    F = orth(F);
+    pwr=sum((F'*x').^2,2);
+    [vls,idx]=sort(pwr,'descend');
+    plot(pwr(idx))
+
+    for cc=1:num_comps
+       subplot(3,5,cc)
+       imagesc(reshape(eig_vect_batch_pca(:,cc),[d1,d2]))
+       axis image
+       colormap gray
+        axis off
+
+       title(['PCA comp:' num2str(cc)])
+    end
+    
+    for cc=1:num_comps
+       subplot(3,5,cc+2*num_comps)
+       imagesc(reshape(F(:,idx(cc)),[d1,d2]))
+       axis image
+       axis off
+       colormap gray
+       title(['OSM comp:' num2str(cc)])
+    end
+    load(files_to_analize{2})
+     
+    for cc=1:num_comps
+       subplot(3,5,cc+1*num_comps)
+       imagesc(reshape(vectors(:,cc),[d1,d2]))
+       axis image
+       colormap gray
+              axis off
+
+       title(['IPCA comp:' num2str(cc)])
+    end
+end
+saveas(gcf,'first5comp.fig')
+% exportfig(gcf,'YALEFirst5.eps','color','cmyk','fontsize',1,'width',10,'height',10)
+%% PLOT ERROR IN FUNCTION OF TRIALS
+files_to_analize = uipickfiles();
+hold all
+load(files_to_analize{1})
+err2=nanmedian(errors_batch_pca');
+load(files_to_analize{2})
+err1=nanmedian(errors_batch_pca');
+idxs=find(~isnan(err2-err1));
+plot(idxs,err2(idxs)-err1(idxs),'-d')
+
+ylabel('\Delta Projection error')
+xlabel('Samples')
+legend('MNIST','YALE','ATT','ORL','SPIKED-COV')
+%%
+files_to_analize = uipickfiles();
+hold all
+load(files_to_analize{1})
+err2=nanmedian(errors_batch_pca');
+load(files_to_analize{2})
+err1=nanmedian(errors_batch_pca');
+idxs=find(~isnan(err2-err1));
+
+
+plot(idxs,err2(idxs),'--*k')
+plot(idxs,err1(idxs),'--*r')
+
+ylabel('Projection error')
+xlabel('Samples')
+legend('OSM YALE','IPCA YALE','OSM ATT','IPCA ATT')
+
 %% error plot online
 clear all
 files_to_analize = uipickfiles()
