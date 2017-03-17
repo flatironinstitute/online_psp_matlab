@@ -160,6 +160,8 @@ xlabel('Time (s)')
 
 ```
 
+## EXAMPLES PYTHON
+
 ```python
 #%%
 n_components = 2
@@ -209,7 +211,7 @@ for X_transformed, title in [(X_osmpca, "OSM PCA"), (X_ipca, "Incremental PCA"),
     plt.show()
 ```
 
-## EXAMPLES PYTHON
+
 **BATCH PCA**
 <p align="center">
   <img src="figures/python_PCA.png" width="550"/>
