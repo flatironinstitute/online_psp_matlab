@@ -173,7 +173,7 @@ xlabel('Time (s)')
   <img src="figures/python_ICA.png" width="550"/>
 </p>
 
-**SIM**
+**ITERATION 1**
 <p align="center">
   <img src="figures/python_iter1.png" width="550"/>
 </p>
