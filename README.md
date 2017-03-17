@@ -5,9 +5,17 @@ Set of functions efficiently implemented in MATLAB
 
 ## Installation
 
-Clone the repository or unzip the source and add recursively folders from the root to the MATLAB path
+### MATLAB 
 
-### Example
+Clone the repository or unzip the source and add recursively folders from the src folder to the MATLAB path
+
+### PYTHON 
+
+Install Anaconda 2.7 and run the script in the Python subfolder
+
+## EXAMPLES MATLAB 
+
+### Basic Example
 
 ``` Matlab
 
@@ -151,6 +159,26 @@ ylabel('Counts')
 xlabel('Time (s)')
 
 ```
+
+
+## EXAMPLES PYTHON
+**BATCH PCA**
+<p align="center">
+  <img src="figures/python_PCA.png" width="550"/>
+</p>
+
+**INCREMENTAL PCA**
+
+<p align="center">
+  <img src="figures/python_ICA.png" width="550"/>
+</p>
+
+**SIM**
+<p align="center">
+  <img src="figures/python_iter_1.png" width="550"/>
+</p>
+
+
 ## References
 
 [1] Pehlevan, Cengiz, Tao Hu, and Dmitri B. Chklovskii. "A Hebbian/Anti-Hebbian Neural Network for Linear Subspace Learning: A Derivation from Multidimensional Scaling of Streaming Data." Neural computation (2015)
