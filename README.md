@@ -175,7 +175,7 @@ xlabel('Time (s)')
 
 **SIM**
 <p align="center">
-  <img src="figures/python_iter_1.png" width="550"/>
+  <img src="figures/python_iter1.png" width="550"/>
 </p>
 
 
