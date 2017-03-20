@@ -63,7 +63,7 @@ for iter=(n_init_PCA+1):(T)
         disp(iter)
     end
 %     options_algorithm.gamma=1./Ysq;
-    [M,W,Y,Ysq]=H_AH_NN_PCAFast(M,W,Y,Ysq,x(:,iter)',options_algorithm);
+    [M,W,Y,Ysq]=OSM_PCA(M,W,Y,Ysq,x(:,iter)',options_algorithm);
      Ys = [Ys Y];     
      
 end

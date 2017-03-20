@@ -14,9 +14,9 @@ x = x(scrambled,:);
 [coeff,score,pcvar] = pca(x,'NumComponents',2);
 
 %% ONLINE PCA
-[M,W,Ysq,Y]=run_H_AH_PCA(x',q,n_init_PCA,[],[],[]);
+[M,W,Ysq,Y]=run_OSM_PCA(x',q,n_init_PCA,[],[],[]);
 % pass over data once more to evaluate improvement
-[M2,W2,Ysq2,Y2]=run_H_AH_PCA(x',q,0,W,M,Ysq);
+[M2,W2,Ysq2,Y2]=run_OSM_PCA(x',q,0,W,M,Ysq);
 
 % if you want to reconver the orthogonal projection
 % orth_projection = (pinv(diag(ones(q,1))+M(1:q,1:q))*W(1:q,:))';

@@ -55,7 +55,7 @@ for i = (n0+1):n
     options.n=i-1;   
     tic
     %[values, vectors] = incrPCA_fast(values, vectors, x(i,:),i-1, [], q);    
-     [M,W,Y]=H_AH_NN_PCAFast(M,W,Y,Ysq,x(i,:),options); 
+     [M,W,Y]=OSM_PCA(M,W,Y,Ysq,x(i,:),options); 
      Ysq = Ysq + Y.^2; % update learning rate
      tms(i-n0)=toc;
 %      if mod(i,50)==0

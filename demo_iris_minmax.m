@@ -28,12 +28,9 @@ orth_projection = (pinv(diag(ones(q,1))+M(1:q,1:q))*W(1:q,:))';
 %% PLOT RESULT BATCH
 figure
 scatterhist(score(:,1),score(:,2), 'group',species(scrambled))
-axis equal
 %% FIRST ITERATION
 figure
 scatterhist(Y(1,:),Y(2,:), 'group',species(scrambled(n_init_PCA+1:end)))
-axis equal
 %% SECOND ITERATION
 figure
 scatterhist(Y2(1,:),Y2(2,:), 'group',species(scrambled))
-axis equal
