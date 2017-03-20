@@ -1,4 +1,4 @@
-function [M,W,Ysq]=run_H_AH_PCA(x,q,n_init_PCA,W,M,Ysq,options_algorithm)
+function [M,W,Ysq,Ys]=run_minmax_PCA(x,q,n_init_PCA,W,M,Ysq,options_algorithm)
 
 if ~exist('options_algorithm')
     options_algorithm=struct();
@@ -11,8 +11,8 @@ end
 
 options_algorithm.q=q;
 [d,T]=size(x);
-scramble=randperm(T);
-x=x(:,scramble);
+% scramble=randperm(T);
+% x=x(:,scramble);
 
 if n_init_PCA>0
     if n_init_PCA<q
@@ -33,16 +33,15 @@ else
 
         W=randn(q,d)/sqrt(d); 
         W(1,:)=x(:,1)/norm(x(:,1));
-        M=zeros(q,q);
-        M=M-diag(diag(M));
+        M=eye(q,q);
         %Ysq=10*ones(size(W,1),1);
-        Ysq=2*pi*norm(x(:,1),'fro')^2/d*ones(size(W,1),1);
+%         init_weight_mult*norm(x(1,:),'fro')^2/d*ones(size(W,1),1)
+%         Ysq=2*pi*norm(x(:,1),'fro')^2/d*ones(size(W,1),1);
 %         Ysq=2*pi*norm(x(:,1),'fro')^2/sqrt(d)*ones(size(W,1),1);
 
     end
 end
 
-Y=rand(q,1)*0;
 
 % for iter=1:n_iter
 %     disp(['** Iteration:' num2str(iter)])
@@ -57,14 +56,15 @@ Y=rand(q,1)*0;
 %         Y_out(:,kk)=Y;
 %     end
 % end
-
+Ys = [];
 for iter=(n_init_PCA+1):(T)    
     if mod(iter,100)==0
         disp(iter)
     end
 %     options_algorithm.gamma=1./Ysq;
-    [M,W,Y,Ysq]=H_AH_NN_PCAFast(M,W,Y,Ysq,x(:,iter)',options_algorithm);
-         
+%     [M,W,Y,Ysq]=H_AH_NN_PCAFast(M,W,Y,Ysq,x(:,iter)',options_algorithm);
+    [M,W,Y]=minMaxPCA(M,W,[],x(:,iter)',.1,0.5,options_algorithm);
+    Ys = [Ys Y];     
 end
 disp(iter)
 

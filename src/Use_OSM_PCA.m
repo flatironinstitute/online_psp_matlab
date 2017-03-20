@@ -27,8 +27,7 @@ disp('svd')
 values=diag(D);
 eigvect=V;
 %%
-profile on
-tic
+
 values=values(1:q);
 vectors=eigvect(:,1:q);
 
@@ -75,9 +74,7 @@ plot(errors)
 
 ylabel('Eigenspace Estimation Error Pq vs Pqhat')
 xlabel('Iterations')
-toc
-profile off
-profile viewer
+
 figure
 hist(tms,0:.0001:.01),xlim([0 .01])
 ylabel('Counts')
