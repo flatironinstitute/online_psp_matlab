@@ -89,7 +89,9 @@ if d>q
     errors_decorr=nan*zeros(n*outer_iter,niter);
     times_=nan*zeros(n*outer_iter,niter);
     for ll=1:niter
-        disp(ll)
+        if mod(ll,10)==0
+            disp(ll)
+        end
         Cy=[];
         %generate random samples
         if isequal(method_random,'brownian_motion') && ll>1 % eigenvalues are only computed once since the covariance matrix is always the same
@@ -249,7 +251,7 @@ if d>q
                     
                     if isequal('H_AH_NN_PCA',pca_algorithm)  ||    isequal('SEQ_SIM_PCA',pca_algorithm)    
                         
-                        F=(pinv(diag(ones(q,1))+M(1:q,1:q)*W(1:q,:))';
+                        F=pinv(diag(ones(q,1))+M(1:q,1:q)*W(1:q,:))';
 %                         errors_ortho(idx,ll) = (norm(F'*F-eye(q),'fro')/norm(F*F','fro'));                        
                         Cy=Cy+Y*Y'; 
                         errors_decorr(idx,ll)=10*log10(norm((Cy-eye(q))/i,'fro')^2);
@@ -341,8 +343,8 @@ if d>q
     
     save(fullfile(folder_exp,[ff_name '.mat']))
     disp(ff_name)
-    disp(['reconstr_error:' num2str(mean(errors_reconstr))])
-
+    disp(['project_error:' num2str(mean(nanmean(errors_batch_pca)))])
+    disp(['reconstr_error:' num2str(mean(nanmean(errors_reconstr)))])
 else
     errors_similarity_pca=[];
     errors_reconstr_pca=[];

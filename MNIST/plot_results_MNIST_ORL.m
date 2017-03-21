@@ -118,7 +118,7 @@ for cv=unique(col_var)%[400 784 1024]
             xvar=q_s(idx);
             xax=unique(xvar);
             [me_h,ma_h]=grpstats(error(idx),xvar,stats_);
-            errorbar(xax+normrnd(0,.01,size(xax)), me_h,ma_h,'o-','MarkerSize',7,'MarkerFaceColor',cm1(5,:),'color',cm1(5,:));
+            errorbar(xax+normrnd(0,.01,size(xax)), me_h,ma_h,'o-','MarkerSize',7,'MarkerFaceColor',[0 0 0],'color',[0 0 0]);
             
             
             hold on
@@ -126,25 +126,25 @@ for cv=unique(col_var)%[400 784 1024]
             xvar=q_s(idx);
             xax=unique(xvar);
             [me_i,ma_i]=grpstats(error(idx),xvar,stats_);
-            errorbar(xax+normrnd(0,.001,size(xax)), me_i,ma_i,'o-','MarkerSize',7,'MarkerFaceColor',cm2(5,:),'color',cm2(5,:));
-            
-             idx=find(col_var==cv & col_var2==cv2 & strcmp(methods_,'SEQ_SIM_PCA'));
-            xvar=q_s(idx);
-            xax=unique(xvar);
-            [me_i,ma_i]=grpstats(error(idx),xvar,stats_);
-            errorbar(xax+normrnd(0,.001,size(xax)), me_i,ma_i,'o-','MarkerSize',7,'MarkerFaceColor',cm3(10,:),'color',cm3(10,:));
-             
-            idx=find(col_var==cv & col_var2==cv2 & strcmp(methods_,'SGA'));
-            xvar=q_s(idx);
-            xax=unique(xvar);
-            [me_i,ma_i]=grpstats(error(idx),xvar,stats_);
-            errorbar(xax+normrnd(0,.001,size(xax)), me_i,ma_i,'o-','MarkerSize',7,'MarkerFaceColor',cm3(5,:),'color',cm3(5,:));
+            errorbar(xax+normrnd(0,.001,size(xax)), me_i,ma_i,'o-','MarkerSize',7,'MarkerFaceColor',[1 0 0],'color',[1 0 0]);
+%             
+%              idx=find(col_var==cv & col_var2==cv2 & strcmp(methods_,'SEQ_SIM_PCA'));
+%             xvar=q_s(idx);
+%             xax=unique(xvar);
+%             [me_i,ma_i]=grpstats(error(idx),xvar,stats_);
+%             errorbar(xax+normrnd(0,.001,size(xax)), me_i,ma_i,'o-','MarkerSize',7,'MarkerFaceColor',cm3(10,:),'color',cm3(10,:));
+%              
+%             idx=find(col_var==cv & col_var2==cv2 & strcmp(methods_,'SGA'));
+%             xvar=q_s(idx);
+%             xax=unique(xvar);
+%             [me_i,ma_i]=grpstats(error(idx),xvar,stats_);
+%             errorbar(xax+normrnd(0,.001,size(xax)), me_i,ma_i,'o-','MarkerSize',7,'MarkerFaceColor',cm3(5,:),'color',cm3(5,:));
              
             idx=find(col_var==cv & col_var2==cv2 & strcmp(methods_,'CCIPCA'));
             xvar=q_s(idx);
             xax=unique(xvar);
             [me_i,ma_i]=grpstats(error(idx),xvar,stats_);
-            errorbar(xax+normrnd(0,.001,size(xax)), me_i,ma_i,'o-','MarkerSize',7,'MarkerFaceColor',cm4(5,:),'color',cm4(5,:));
+            errorbar(xax+normrnd(0,.001,size(xax)), me_i,ma_i,'o-','MarkerSize',7,'MarkerFaceColor',[0 0.6 0.6],'color',[0 0.6 0.6]);
             
             
 %             xlim([3 300])
@@ -163,7 +163,7 @@ for cv=unique(col_var)%[400 784 1024]
 %             L = get(gca,'XLim');
 %             set(gca,'XTick',xax)
 
-            legend('OSM','IPCA')
+            legend('SIM','IPCA','CCIPCA')
             box off
         end
     end

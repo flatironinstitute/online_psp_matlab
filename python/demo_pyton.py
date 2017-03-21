@@ -6,12 +6,14 @@ Created on Fri Mar 17 11:37:37 2017
 @author: agiovann
 """
 #%%
-n_components = 2
 import numpy as np
 import matplotlib.pyplot as plt
 
 from sklearn.datasets import load_iris
 from sklearn.decomposition import PCA, IncrementalPCA
+from OSM import run_OSM_PCA
+#%%
+n_components = 2
 
 iris = load_iris()
 X = iris.data
@@ -39,14 +41,14 @@ for X_transformed, title in [(X_osmpca, "OSM PCA"), (X_ipca, "Incremental PCA"),
 
     if "Incremental" in title:
         err = np.abs(np.abs(X_pca) - np.abs(X_ipca)).mean()
-        plt.title(title + " of iris dataset\nMean absolute unsigned error "
-                  "%.6f" % err)
+#        plt.title(title + " of iris dataset\nMean absolute unsigned error "
+#                  "%.6f" % err)
     elif "OSM" in title:
         err = np.abs(np.abs(X_pca) - np.abs(X_osmpca)).mean()
-        plt.title(title + " of iris dataset\nMean absolute unsigned error "
-                  "%.6f" % err)
-    else:
-        plt.title(title + " of iris dataset")
+#        plt.title(title + " of iris dataset\nMean absolute unsigned error "
+#                  "%.6f" % err)
+    
+    plt.title(title + " of iris dataset")
     plt.legend(loc="best")
     plt.axis([-4, 4, -1.5, 1.5])
 

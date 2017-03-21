@@ -90,7 +90,7 @@ for f=1:numel(files)
 end
 %% errors plot
 jj=0;
-is_projection_error=0;
+is_projection_error=1;
 if is_projection_error
     %figure('name','Projection Error')    
      error=err_batch;  
@@ -168,9 +168,9 @@ for cv=unique(col_var)
             set(gca,'yscale','log')
             
             if is_projection_error
-                legend('OSM','IPCA','SGA','SEQ_OSM','CCIPCA','location','NorthWest')
+                legend('SIM','IPCA','SGA','SEQ_OSM','CCIPCA','location','NorthWest')
             else
-                legend('OSM','IPCA','SGA','SEQ_OSM','CCIPCA','location','SouthEast')
+                legend('SIM','IPCA','SGA','SEQ_OSM','CCIPCA','location','SouthEast')
             end
             
             
@@ -194,16 +194,16 @@ a = gca;
 % set box property to off and remove background color
 box off
 
-% if is_projection_error
-%     fname=['Proj_error_' num2str(cv) '.fig']
-%     fname1=['Proj_error_' num2str(cv) '.eps']
-%    
-% else
-%     fname=['Reconstr_error_' num2str(cv) '.fig']   
-%     fname1=['Reconstr_error_' num2str(cv) '.eps']   
-% end
-% saveas(gcf,fname) 
-% exportfig(gcf,fname1,'color','cmyk','fontsize',2,'width',7,'height',12)
+if is_projection_error
+    fname=['Proj_error_' num2str(cv) '.fig']
+    fname1=['Proj_error_' num2str(cv) '.eps']
+   
+else
+    fname=['Reconstr_error_' num2str(cv) '.fig']   
+    fname1=['Reconstr_error_' num2str(cv) '.eps']   
+end
+saveas(gcf,fname) 
+exportfig(gcf,fname1,'color','cmyk','fontsize',2,'width',7,'height',12)
 %% time plot IF YOU WANT TO RUN THIS YOU NEED TO SET load_times=1
 figure
 jj=0;
@@ -220,39 +220,40 @@ for cv=unique(col_var)
     if ~isempty(find(col_var==cv,1))
         if ~isempty(find(col_var==cv ,1))
             jj=jj+1;
+            
             subplot(3,3,jj)
             
             idx=find(col_var==cv & strcmp(methods_,'H_AH_NN_PCA'));
             xvar=q_s(idx);
             xax=unique(xvar);
             [me_h,ma_h,ql_h,qh_h]=grpstats(ttime(idx),xvar,stats_);
-            errorbar(xax+normrnd(0,.01,size(xax)), me_h,ma_h,'o-','MarkerSize',6,'MarkerFaceColor',cm1(5,:),'color',cm1(5,:));
+            errorbar(xax+normrnd(0,.01,size(xax)), me_h,ma_h,'o-','MarkerSize',6,'MarkerFaceColor',[0 0 0],'color',[0 0 0]);
             
             hold on
             idx=find(col_var==cv & strcmp(methods_,'IPCA'));
             xvar=q_s(idx);
             xax=unique(xvar);
             [me_i,ma_i,ql_i,qh_i]=grpstats(ttime(idx),xvar,stats_);
-            errorbar(xax+normrnd(0,.01,size(xax)), me_i,ma_i,'o-','MarkerSize',6,'MarkerFaceColor',cm2(5,:),'color',cm2(5,:));
+            errorbar(xax+normrnd(0,.01,size(xax)), me_i,ma_i,'o-','MarkerSize',6,'MarkerFaceColor',[1 0 0],'color',[1 0 0]);
             
             hold on
             idx=find(col_var==cv & strcmp(methods_,'CCIPCA'));
             xvar=q_s(idx);
             xax=unique(xvar);
             [me_i,ma_i,ql_i,qh_i]=grpstats(ttime(idx),xvar,stats_);
-            errorbar(xax+normrnd(0,.01,size(xax)), me_i,ma_i,'o-','MarkerSize',6,'MarkerFaceColor',cm2(2,:),'color',cm2(2,:));
+            errorbar(xax+normrnd(0,.01,size(xax)), me_i,ma_i,'o-','MarkerSize',6,'MarkerFaceColor',[0 0.6 0.6],'color',[0 0.6 0.6]);
             
             
             
-            idx=find(col_var==cv & strcmp(methods_,'SGA'));
-            xvar=q_s(idx);
-            xax=unique(xvar);
-            [me_i,ma_i,ql_i,qh_i]=grpstats(ttime(idx),xvar,stats_);
-            errorbar(xax+normrnd(0,.01,size(xax)), me_i,ma_i,'o-','MarkerSize',6,'MarkerFaceColor',cm3(5,:),'color',cm3(5,:));
+%             idx=find(col_var==cv & strcmp(methods_,'SGA'));
+%             xvar=q_s(idx);
+%             xax=unique(xvar);
+%             [me_i,ma_i,ql_i,qh_i]=grpstats(ttime(idx),xvar,stats_);
+%             errorbar(xax+normrnd(0,.01,size(xax)), me_i,ma_i,'o-','MarkerSize',6,'MarkerFaceColor',[0 .6 0],'color',[0 .6 0]);
             
             
             
-            legend('H_AH_NN_PCA','IPCA','CCIPCA','SGA')
+            legend('SIM','IPCA','CCIPCA','SGA')
             set(gca,'yscale','log')
             set(gca,'xscale','log')
             xlabel('q')
@@ -261,11 +262,13 @@ for cv=unique(col_var)
             %ylim([2*1e-4 2])
             axis square
             title(['d=' num2str(cv)])
+            
+            
         end
     end
 end
 
-% %%
+%%
 clear all
 files=dir('*.mat');
 % dirFlags = [files.isdir];
