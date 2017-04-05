@@ -55,21 +55,7 @@ scatterhist(Y2(idx(1),:),Y2(idx(2),:), 'group',species(scrambled(n_init_PCA+1:en
 
 
 ```
-**BATCH PCA**
-<p align="center">
-  <img src="figures/batch.png" width="550"/>
-</p>
 
-**ITERATION 1**
-
-<p align="center">
-  <img src="figures/iter 1.png" width="550"/>
-</p>
-
-**ITERATION 2**
-<p align="center">
-  <img src="figures/iter 2.png" width="550"/>
-</p>
 
 
 ### Detailed Example
