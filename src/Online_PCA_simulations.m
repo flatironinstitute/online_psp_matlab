@@ -250,8 +250,8 @@ if d>q
 
                     
                     if isequal('H_AH_NN_PCA',pca_algorithm)  ||    isequal('SEQ_SIM_PCA',pca_algorithm)    
-                        
-                        F=pinv(diag(ones(q,1))+M(1:q,1:q)*W(1:q,:))';
+                      % F=(pinv(diag(ones(q,1))+M(1:q,1:q))*W(1:q,:))';
+                        F=(pinv(diag(ones(q,1))+M(1:q,1:q))*W(1:q,:))';
 %                         errors_ortho(idx,ll) = (norm(F'*F-eye(q),'fro')/norm(F*F','fro'));                        
                         Cy=Cy+Y*Y'; 
                         errors_decorr(idx,ll)=10*log10(norm((Cy-eye(q))/i,'fro')^2);

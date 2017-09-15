@@ -49,8 +49,8 @@ options_generator.n=1024*4;
 counter=0;
 do_CCIPCA = 0;
 do_IPCA = 0;
-do_H_AH_NN_PCA = 0;
-do_SGA = 1;
+do_H_AH_NN_PCA = 1;
+do_SGA = 0;
 do_SEQ_SIM_PCA = 0;
 
 for q=[2 4 16 64 128 256]

@@ -1,6 +1,6 @@
 function err=compute_projection_error(V_exact,V_approx)
 %{ 
-Compute quickly and efficiently the reconstruction errors given a subspace approximation. 
+Compute quickly and efficiently the projection errors given a subspace approximation. 
 
 the input vector are given as d x q where d is the dimensionality and q is
 the number of principal components
@@ -11,7 +11,7 @@ V_exact,V_approx: eigenvector matrix (features x components)
 
 Return
 ------
-err: the error ||VV_exact*V__exact' - V_approx*V_approx'||/||VV_exact*V__exact'||
+err: the error ||V_exact*V__exact' - V_approx*V_approx'||/||VV_exact*V__exact'||
 
 %}
 
