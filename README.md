@@ -1,5 +1,5 @@
-# NeuralPSP
-Benchmark of online Principal Subspace Projection algorithms along with a set of algorithms efficiently implemented in MATLAB
+# Online-PSP
+Efficient MATLAB implementation of online Principal Subspace Projection algorithms (Fast Similarity Matching[1], Incremental PCA[2], and Candid Covariance Incremental PCA[2])
 
 For the more complete Python version please go to the link [online-psp](https://github.com/flatironinstitute/online-psp)
 
@@ -28,7 +28,7 @@ components = fsm.get_components([]);
 
 
 ### Detailed Example
-For more detailed examples look at the demo_XXX.m files
+For more detailed examples explore the demo_XXX.m files
 
 
 ## References
