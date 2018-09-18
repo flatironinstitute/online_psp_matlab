@@ -73,8 +73,10 @@ classdef IPCA < handle
           M = diag( obj.lambda_) + Uhatx * Uhatx';
           [V, s] = eig(M);
           s = diag(s);
-          obj.lambda_ = s(end:-1:2);
-          V = V(:, end:-1:2);          
+          if (normx >= obj.tol)
+            obj.lambda_ = s(end:-1:2);
+            V = V(:, end:-1:2);       
+          end
           obj.Uhat =  obj.Uhat*V;
        
       end
