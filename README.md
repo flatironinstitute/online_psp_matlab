@@ -1,7 +1,7 @@
 # Online-PSP
 Efficient MATLAB implementation of online Principal Subspace Projection algorithms (Fast Similarity Matching[1], Incremental PCA[2,3], and Candid Covariance Incremental PCA[2,4])
 
-For the more complete Python version please go to the link [online-psp](https://github.com/flatironinstitute/online-psp)
+For the more complete Python version please go to the link [online-psp](https://github.com/flatironinstitute/online_psp)
 
 ## Installation
 
